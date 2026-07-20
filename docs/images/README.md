@@ -8,6 +8,8 @@ Ablage für die README-Screenshots.
 | `console-overview-dark.png` | dieselbe Ansicht, dunkel | ✅ vorhanden |
 | `console-modes.png` | Web-Konsole „Modi" (per-Nutzer-Editor) | ✅ vorhanden |
 | `windows-tray.png` | Windows-Client: Einstellungen (Backend-URL + Token) | ✅ vorhanden |
+| `android-record.png` | Android-Client: Aufnahme-Screen (hell) | ✅ vorhanden |
+| `android-record-dark.png` | dieselbe Ansicht, dunkel | ✅ vorhanden |
 
 Die Konsolen-Bilder wurden mit Playwright + der Harness unten erzeugt (headless
 Chromium, 2× DPI, eng auf `main` beschnitten). Die **Client-Bilder** entstehen am
@@ -18,6 +20,10 @@ Gerät – siehe unten, was jeweils drauf soll.
 - **`windows-tray.png`** – der Windows-Tray mit dem Sprichblitz-Icon; ideal zwei
   Zustände nebeneinander oder der Tooltip/Kontextmenü. Aufnahme z. B. mit
   `Win`+`Shift`+`S` (Snipping Tool). Empfohlene Breite ~600–900px.
+- **`android-record.png`** und **`android-record-dark.png`** – der Aufnahme-Screen
+  der Android-App (Modus-Auswahl + Aufnahme-Knopf). Die Android-Statusleiste ist
+  aus Datenschutzgründen abgeschnitten; die App-Oberfläche bleibt unverändert.
+
 Die **Client-Screenshots** entstehen am Gerät. Die
 **Web-Konsole** lässt sich ohne laufendes Backend mit Demo-Daten rendern – so
 sehen alle Konsolen-Screenshots konsistent und ohne echte Nutzerdaten aus.

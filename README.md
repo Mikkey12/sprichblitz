@@ -88,6 +88,12 @@ Farben/Abstände.
 </p>
 <p align="center"><em>Windows-Client: Einstellungen (Backend-URL + Token); der Text landet an der Cursor-Position.</em></p>
 
+<p align="center">
+  <img src="docs/images/android-record.png" alt="Android-Client – Aufnahme-Screen (hell)" width="30%">
+  <img src="docs/images/android-record-dark.png" alt="Android-Client – Aufnahme-Screen (dunkel)" width="30%">
+</p>
+<p align="center"><em>Android-Client: Modus-Auswahl + Aufnahme – hell und dunkel, folgt der Systemeinstellung.</em></p>
+
 ## Wie es zusammenhängt (und was wo laufen muss)
 
 Sprichblitz besteht aus **drei Ebenen**, die unabhängig voneinander platziert

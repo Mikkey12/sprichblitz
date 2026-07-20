@@ -7,7 +7,7 @@
 # Build-Context ist das Repo-Root (siehe deployment/docker/docker-compose.yml).
 
 # ---------- builder ----------
-FROM python:3.11-slim AS builder
+FROM python:3.14-slim AS builder
 
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -24,7 +24,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install /build
 
 # ---------- runtime ----------
-FROM python:3.11-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # ffmpeg ist Pflicht für pydub (MP3/M4A-Decoder).
 RUN apt-get update \

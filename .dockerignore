@@ -1,0 +1,20 @@
+# Den Docker-Buildkontext als Allowlist behandeln. Das Repository enthält
+# gitignorierte Laufzeit-Secrets, lokale Configs und Datenbanken; sie dürfen
+# weder an BuildKit noch an einen entfernten Builder übertragen werden.
+**
+
+!.dockerignore
+!backend/
+!backend/pyproject.toml
+!backend/README.md
+!backend/src/
+!backend/src/**
+!backend/config.example.yml
+!backend/alembic/
+!backend/alembic/**
+!backend/alembic.ini
+!deployment/
+!deployment/docker/
+!deployment/docker/Dockerfile
+!deployment/docker/docker.local.yml
+!deployment/docker/entrypoint.sh

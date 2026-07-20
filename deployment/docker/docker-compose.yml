@@ -1,0 +1,39 @@
+# Sprichblitz Backend – Compose-Stack.
+#
+# Build-Context ist das Repo-Root (../..), damit der Dockerfile sowohl
+# auf backend/ als auch auf deployment/docker/ zugreifen kann.
+#
+# .env-Datei kommt aus backend/.env (Secrets bleiben extern, nicht im Image).
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    image: sprichblitz-backend:latest
+    container_name: sprichblitz-backend
+    restart: unless-stopped
+    ports:
+      # Sicherer Tunnel-Default: Origin nur auf Host-Loopback veröffentlichen.
+      # Bewusster LAN-Betrieb: in einer eigenen Compose-Override-Datei auf
+      # "8000:8000" ändern und den Port per Firewall begrenzen.
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - ../../backend/.env
+    volumes:
+      # SQLite-DB (Nutzer/Tokens/Keys) persistent halten – sonst wäre sie beim
+      # Container-Recreate weg. Der Entrypoint migriert beim Start ins /data.
+      - sprichblitz-db:/data
+    extra_hosts:
+      # WhisperKit und LM Studio laufen auf dem Container-Host; via
+      # host.docker.internal aus dem Container erreichbar.
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  sprichblitz-db:

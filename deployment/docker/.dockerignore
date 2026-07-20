@@ -1,0 +1,44 @@
+# Build-Context ist das Repo-Root. Wir wollen NUR backend/src,
+# backend/pyproject.toml, backend/README.md, backend/config.example.yml,
+# und deployment/docker/docker.local.yml im Image landen.
+
+# Python-Artefakte
+**/__pycache__
+**/*.py[cod]
+**/*.so
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.coverage
+**/.venv
+**/venv
+**/*.egg-info
+**/dist
+**/build
+
+# Secrets & lokale Configs
+**/.env
+**/.env.*
+**/.env.bak.*
+**/config.local.yml
+backend/config.yml
+
+# Tests + Fixtures gehören nicht ins Runtime-Image
+backend/tests
+
+# Dokumentation, IDE-Kram, OS-Artefakte
+**/.DS_Store
+**/Thumbs.db
+.vscode
+.idea
+.git
+.gitignore
+*.md
+!backend/README.md
+
+# Komponenten, die nichts mit dem Backend zu tun haben
+windows_client
+docs
+deployment/launchd
+LICENSE
+Makefile

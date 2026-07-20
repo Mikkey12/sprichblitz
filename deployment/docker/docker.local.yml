@@ -1,0 +1,38 @@
+# Lokale Overrides für den Docker-Container.
+# Wird per `SPRICHBLITZ_CONFIG_LOCAL=/app/docker.local.yml` als Override
+# auf die Standard-Config gemerged.
+#
+# Zweck: lokale Provider laufen auf dem Backend-Host. ``localhost`` aus der
+# Default-Config (bzw. die Beispiel-LAN-IP 192.168.1.10 aus der Doku) bezeichnet
+# aus dem Container aber den falschen Host; ``host.docker.internal`` wird via
+# compose auf das Host-Gateway abgebildet.
+
+server:
+  # Im Container muss Uvicorn auf allen Container-Interfaces lauschen. Compose
+  # veröffentlicht Port 8000 trotzdem nur auf 127.0.0.1 des Hosts.
+  host: 0.0.0.0
+
+stt_providers:
+  lm_studio_whisper:
+    # Historischer Providername; tatsächlich WhisperKit, nicht LM Studio.
+    base_url: http://host.docker.internal:8080/v1
+
+llm_providers:
+  lm_studio:
+    base_url: http://host.docker.internal:1234/v1
+
+# --- Trusted Ingress im Container (auskommentiert – bei Bedarf aktivieren) ---
+# Im Container kommt cloudflared-/Host-Traffic von der Docker-Bridge-Gateway-IP
+# (Default-Bridge 172.17.0.1; ein compose-eigenes Netz nutzt einen anderen
+# Bereich, z. B. 172.18.0.1), NICHT von 127.0.0.1. Die TrustedIngressMiddleware
+# stuft den Request dann als LAN ein → require_tls blockt POST /console/session
+# und PUT /me/keys auch über den Tunnel. Trage die tatsächliche Gateway-IP ein
+# (ermitteln: README, Abschnitt „Trusted Ingress im Container"). Die Liste
+# ERSETZT den Default ["127.0.0.1","::1"] – also mit aufführen:
+#
+# auth:
+#   cf_access:
+#     trusted_proxy_ips:
+#       - "127.0.0.1"
+#       - "::1"
+#       - "172.17.0.1"   # Docker-Bridge-Gateway – an dein Netz anpassen

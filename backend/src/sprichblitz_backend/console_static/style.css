@@ -1,0 +1,298 @@
+/* Sprichblitz Konsole – Design-System.
+ *
+ * Die Tokens in :root sind die EINZIGE Quelle für Farben, Abstände, Radien und
+ * Typo. Alles darunter greift ausschliesslich darauf zu; wer an ihnen vorbei
+ * hardcodiert, bricht den Vertrag mit den Frontend-Apps (Android Theme.kt,
+ * Windows-Palette) – docs/design_system.md hält dieselbe Tabelle fest, dieses
+ * File ist die Referenzimplementierung. Ein Test-Guard nagelt es fest.
+ *
+ * Regeln: Genau EIN Akzent pro Ansicht (der aktive Tab, der Fokus-Ring, die eine
+ * primäre Aktion pro Karte). Rot ausschliesslich destruktiv. System-Fonts sind
+ * Pflicht, nicht Geschmack – die CSP (`default-src 'none'`) verbietet externe.
+ * Hell/dunkel folgt der Systemeinstellung; es gibt bewusst keinen Umschalter.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Farbe */
+  --sb-accent: #4f46e5;
+  --sb-on-accent: #ffffff;
+  --sb-accent-subtle: #eeedfe;
+  --sb-danger: #b00020;
+  --sb-success: #0f6e56;
+
+  --sb-bg: #f6f6f7;
+  --sb-surface: #ffffff;
+  --sb-border: #e4e4e7;
+  --sb-border-strong: #c8c8cf;
+
+  --sb-text: #1b1b1f;
+  --sb-text-muted: #6a6a73;
+
+  /* Abstände – 4er-Raster, für alle vertikalen und horizontalen Lücken */
+  --sb-space-1: 4px;
+  --sb-space-2: 8px;
+  --sb-space-3: 12px;
+  --sb-space-4: 16px;
+  --sb-space-5: 24px;
+  --sb-space-6: 32px;
+
+  /* Radien: klein für Controls, gross für Karten */
+  --sb-radius: 8px;
+  --sb-radius-card: 12px;
+  --sb-radius-pill: 999px;
+
+  /* Typo */
+  --sb-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sb-text-xs: 12px;
+  --sb-text-sm: 14px;
+  --sb-text-md: 16px;
+  --sb-text-lg: 18px;
+  --sb-text-xl: 22px;
+
+  /* Mindestgrösse für alles Antippbare (Finger, nicht Mauszeiger) */
+  --sb-tap: 44px;
+  --sb-focus-width: 2px;
+
+  --sb-content-width: 46rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sb-accent: #818cf8;
+    --sb-on-accent: #14141c;
+    --sb-accent-subtle: #24243a;
+    --sb-danger: #f87171;
+    --sb-success: #5dcaa5;
+
+    --sb-bg: #131316;
+    --sb-surface: #1c1c21;
+    --sb-border: #2f2f36;
+    --sb-border-strong: #46464f;
+
+    --sb-text: #ececee;
+    --sb-text-muted: #9a9aa4;
+  }
+}
+
+/* --- Grundgerüst ---------------------------------------------------------- */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--sb-font);
+  font-size: var(--sb-text-md);
+  line-height: 1.5;
+  color: var(--sb-text);
+  background: var(--sb-bg);
+  margin: 0;
+  padding: var(--sb-space-4) var(--sb-space-3) var(--sb-space-6);
+}
+
+main {
+  max-width: var(--sb-content-width);
+  margin: 0 auto;
+}
+
+h1 { font-size: var(--sb-text-xl); font-weight: 600; margin: 0; }
+h2 { font-size: var(--sb-text-lg); font-weight: 600; margin: 0 0 var(--sb-space-3); }
+h3 { font-size: var(--sb-text-sm); font-weight: 600; margin: var(--sb-space-4) 0 var(--sb-space-2); }
+
+header { margin-bottom: var(--sb-space-4); }
+#greeting { color: var(--sb-text-muted); font-size: var(--sb-text-sm); margin: var(--sb-space-1) 0 0; }
+
+/* --- Navigation: horizontal scrollbare Pills ------------------------------
+ * Auf dem Handy passen sechs Tabs nicht nebeneinander. Statt sie umzubrechen
+ * (springende Höhe) scrollt die Leiste seitlich – die Seite selbst nie. */
+
+nav {
+  display: flex;
+  gap: var(--sb-space-2);
+  margin-bottom: var(--sb-space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+nav::-webkit-scrollbar { display: none; }
+
+nav button {
+  font: inherit;
+  font-size: var(--sb-text-sm);
+  white-space: nowrap;
+  flex: none;
+  padding: var(--sb-space-2) var(--sb-space-3);
+  min-height: var(--sb-tap);
+  border: none;
+  border-radius: var(--sb-radius-pill);
+  background: none;
+  color: var(--sb-text-muted);
+  cursor: pointer;
+}
+nav button:hover { color: var(--sb-text); }
+nav button.active {
+  background: var(--sb-accent);
+  color: var(--sb-on-accent);
+  font-weight: 500;
+}
+
+/* --- Karten --------------------------------------------------------------- */
+
+.card {
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-radius-card);
+  padding: var(--sb-space-3);
+  margin-bottom: var(--sb-space-3);
+}
+.card > strong { font-size: var(--sb-text-md); font-weight: 600; }
+
+/* Ruhige Kennzahlen-Zeile statt Badge-Salat („19 Tokens · 23 Tage · online"). */
+.meta {
+  font-size: var(--sb-text-xs);
+  color: var(--sb-text-muted);
+  margin-top: var(--sb-space-1);
+}
+
+.badge {
+  font-size: var(--sb-text-xs);
+  padding: 2px var(--sb-space-2);
+  border-radius: var(--sb-radius-pill);
+  background: var(--sb-accent-subtle);
+  color: var(--sb-accent);
+  margin-left: var(--sb-space-2);
+}
+
+/* --- Felder: Label ÜBER dem Eingabefeld -----------------------------------
+ * Nebeneinander wird auf schmalen Screens unlesbar; gestapelt bleibt es auf
+ * jeder Breite gleich und die Felder dürfen volle Breite nehmen. */
+
+.field { margin: var(--sb-space-3) 0; }
+/* Das <label> umschliesst das Feld (Klick aufs Label fokussiert es, ohne dass
+ * wir IDs vergeben müssen); die Beschriftung selbst steckt im <span> darüber. */
+.field label { display: block; }
+.field label > span {
+  display: block;
+  font-size: var(--sb-text-xs);
+  color: var(--sb-text-muted);
+  margin-bottom: var(--sb-space-1);
+}
+
+input, textarea, select {
+  font: inherit;
+  font-size: var(--sb-text-sm);
+  width: 100%;
+  min-height: var(--sb-tap);
+  padding: var(--sb-space-2) var(--sb-space-3);
+  color: var(--sb-text);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: var(--sb-radius);
+}
+textarea { min-height: calc(var(--sb-tap) * 2); resize: vertical; }
+
+/* Checkboxen sind keine Textfelder: nicht dehnen, aber antippbar halten. */
+input[type="checkbox"] {
+  width: auto;
+  min-height: auto;
+  width: 20px;
+  height: 20px;
+  margin: var(--sb-space-2) 0;
+  accent-color: var(--sb-accent);
+}
+
+:focus-visible {
+  outline: var(--sb-focus-width) solid var(--sb-accent);
+  outline-offset: 1px;
+}
+
+/* --- Buttons -------------------------------------------------------------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sb-space-2);
+  align-items: center;
+  margin-top: var(--sb-space-3);
+}
+
+button {
+  font: inherit;
+  font-size: var(--sb-text-sm);
+  min-height: var(--sb-tap);
+  padding: var(--sb-space-2) var(--sb-space-3);
+  color: var(--sb-text);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: var(--sb-radius);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--sb-text-muted); }
+
+/* Genau eine primäre Aktion pro Karte – sonst konkurrieren sie um den Blick. */
+button.primary {
+  background: var(--sb-accent);
+  border-color: var(--sb-accent);
+  color: var(--sb-on-accent);
+  font-weight: 500;
+}
+button.danger { color: var(--sb-danger); border-color: var(--sb-danger); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* --- Status / Meldungen --------------------------------------------------- */
+
+.muted { color: var(--sb-text-muted); font-size: var(--sb-text-xs); }
+.error, #fatal { color: var(--sb-danger); font-size: var(--sb-text-sm); }
+.ok { color: var(--sb-success); font-size: var(--sb-text-xs); }
+
+#fatal {
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-danger);
+  border-radius: var(--sb-radius-card);
+  padding: var(--sb-space-3);
+}
+
+/* Token-Klartext: erscheint genau einmal, muss also ins Auge springen. */
+.secret { border-color: var(--sb-accent); }
+.secret input { font-family: ui-monospace, monospace; }
+
+/* --- Tabellen ------------------------------------------------------------- */
+/* Breite Tabellen scrollen in IHREM Container – der Body nie horizontal. */
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table { border-collapse: collapse; width: 100%; font-size: var(--sb-text-sm); }
+th, td {
+  text-align: left;
+  padding: var(--sb-space-2) var(--sb-space-3);
+  border-bottom: 1px solid var(--sb-border);
+  white-space: nowrap;
+}
+th { font-weight: 600; font-size: var(--sb-text-xs); color: var(--sb-text-muted); }
+
+/* --- Listen (Tokens) ------------------------------------------------------ */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sb-space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sb-space-2) 0;
+  border-bottom: 1px solid var(--sb-border);
+  font-size: var(--sb-text-sm);
+}
+.row:last-child { border-bottom: none; }
+
+/* --- Ab Tablet etwas grosszügiger ---------------------------------------- */
+
+@media (min-width: 40rem) {
+  body { padding: var(--sb-space-6) var(--sb-space-4); }
+  .card { padding: var(--sb-space-4); }
+  /* Mit Maus statt Finger dürfen Buttons kompakter sein. */
+  button { min-height: 36px; }
+  input, select { min-height: 36px; }
+}

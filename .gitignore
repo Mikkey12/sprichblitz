@@ -1,0 +1,68 @@
+# Secrets / lokale Configs
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+config.local.yml
+backend/config.local.yml
+backend/config.yml
+# Zeitstempel-Backups der Arbeits-Configs (Backup-Skripte) – enthalten dieselben
+# internen Daten wie die gitignoreten Working-Configs, dürfen NIE ins Repo.
+config*.yml.bak*
+
+# Interne Planungs-/Prompt-/Auftrags-Dokumente – bleiben lokal, gehören NICHT ins
+# öffentliche Repo. (git rm --cached, Datei bleibt auf der Platte.)
+/AUFTRAG_Sprichblitz.md
+/IDEA.md
+/PLAN.md
+/PROMPT.md
+
+# Datenbank (SQLite – Nutzer/Tokens/Keys, Etappe 1+)
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite3
+*.sqlite
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build / Dist
+dist/
+build/
+*.egg-info/
+*.spec
+# Source-Spec liegt in packaging/ (build/ ist PyInstaller-Temp).
+!windows_client/packaging/sprichblitz.spec
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Audio (sollte sowieso nie reinkommen, aber zur Sicherheit)
+*.wav
+*.mp3
+*.m4a
+!backend/tests/fixtures/*.wav

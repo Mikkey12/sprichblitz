@@ -1,0 +1,20 @@
+# Normalise line endings so the repo is consistent across Windows/macOS/Linux.
+* text=auto
+
+# The POSIX wrapper script and shell/kotlin sources must stay LF, otherwise
+# gradlew breaks when run on macOS/Linux (the backend + Mac client hosts).
+gradlew        text eol=lf
+*.sh           text eol=lf
+*.kt           text eol=lf
+*.kts          text eol=lf
+*.pro          text eol=lf
+*.toml         text eol=lf
+
+# Windows batch must stay CRLF.
+*.bat          text eol=crlf
+
+# Binary — never touch.
+*.jar          binary
+*.keystore     binary
+*.jks          binary
+*.png          binary

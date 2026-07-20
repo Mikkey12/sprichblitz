@@ -1,0 +1,78 @@
+# Sprichblitz Backend – Lokale Overrides
+#
+# Kopiere diese Datei nach config.local.yml und überschreibe nur das,
+# was bei dir lokal anders ist. Wird per Deep-Merge in config.yml
+# gemerged.
+#
+# Beispiele:
+
+# server:
+#   port: 8001
+
+# Nur für eigene Integrationen: Die mitgelieferten Android- und Windows-Clients
+# senden keine Cloudflare-Access-Zugangsdaten. Für sie token_only verwenden.
+# auth:
+#   mode: token_plus_cf_access
+#   require_console_nonce: true
+#   cf_access:
+#     team_domain: "<cloudflare-zero-trust-teamname>"
+#     application_aud: "<access-application-aud>"
+
+# stt_providers:
+#   lm_studio_whisper:
+#     # Trotz des historischen Namens („lm_studio_whisper") zeigt der
+#     # diesen Provider auf den lokalen WhisperKit-Server: ein
+#     # Daemon auf dem Mac (Apple Silicon), OpenAI-API-kompatibel,
+#     # Port 8080. Installation & Betrieb: docs/whisper_local.md.
+#     # Property heisst `model` (NICHT `default_model` – das gilt
+#     # nur für LLM-Provider).
+#     base_url: http://localhost:8080/v1
+#     health_path: /health
+#     model: whisper-large-v3-turbo
+
+# llm_providers:
+#   anthropic:
+#     # Wenn du für Mail/Rage doch Sonnet 4.6 willst statt Haiku:
+#     default_model: claude-sonnet-4-6
+
+# modes:
+#   mail:
+#     # Pro Modus eigenes LLM-Modell überschreiben:
+#     llm_model: claude-opus-4-7
+
+# ----------------------------------------------------------------------
+# Komplett-lokal-Profil ("local-first")
+# ----------------------------------------------------------------------
+# Ziel: wenn irgend möglich lokal laufen – lokales Whisper-large-v3-turbo
+# für STT, lokales LM-Studio-Modell für die LLM-Modi. Cloud nur dort, wo
+# es lokal (noch) nichts gibt bzw. als Fallback. Block unkommentieren und
+# base_url/model an deine lokale Installation anpassen.
+#
+# stt_providers:
+#   lm_studio_whisper:
+#     base_url: http://localhost:8080/v1   # WhisperKit-Server
+#     health_path: /health
+#     model: whisper-large-v3-turbo
+#
+# modes:
+#   exact_de:
+#     stt: lm_studio_whisper               # statt Cloud-Whisper
+#     fallback_stt: openai_whisper         # Cloud nur als Fallback
+#   exact_swiss:
+#     stt: lm_studio_whisper
+#     fallback_stt: openai_whisper
+#   mail:
+#     stt: lm_studio_whisper
+#     fallback_stt: openai_whisper
+#     llm: lm_studio                       # lokales LLM statt Anthropic
+#   rage:
+#     stt: lm_studio_whisper
+#     fallback_stt: openai_whisper
+#     llm: lm_studio
+#   emoji:
+#     stt: lm_studio_whisper
+#     fallback_stt: openai_whisper
+#     llm: lm_studio                       # ist bereits Default
+#
+# Per-Modus-Abweichung vom Lokal-Default geht zusätzlich client-seitig
+# über den LLM-Override im Modi-Tab (Stufe A) – ohne Backend-Neustart.

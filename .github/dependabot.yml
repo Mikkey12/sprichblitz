@@ -1,0 +1,45 @@
+version: 2
+
+updates:
+  - package-ecosystem: uv
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      backend-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directory: /windows_client
+    schedule:
+      interval: weekly
+    groups:
+      windows-client-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: gradle
+    directory: /android_client
+    schedule:
+      interval: weekly
+    groups:
+      android-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /deployment/docker
+    schedule:
+      interval: weekly
+    # The runtime Python version is a supported platform decision, not a
+    # routine image refresh. Major upgrades must update requires-python, CI,
+    # lock files, documentation, and compatibility tests together.
+    ignore:
+      - dependency-name: python
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]

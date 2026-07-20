@@ -1,0 +1,32 @@
+# Legacy-/Convenience-Liste für Installationen ohne uv. Die Bereiche sind
+# absichtlich mit pyproject.toml synchron, aber NICHT vollständig fixiert.
+# Reproduzierbare Tests und Builds verwenden ausschliesslich uv.lock:
+#   uv sync --frozen --extra build
+#
+# WICHTIG: Release- und CI-Builds dürfen nicht aus dieser Datei auflösen.
+
+pydantic>=2.9,<3.0
+loguru>=0.7,<0.8
+httpx>=0.28,<0.30
+numpy>=1.26,<3.0
+sounddevice>=0.5,<0.6
+pyperclip>=1.9,<2.0
+keyring>=25.4,<26.0
+keyboard>=0.13,<0.14
+pyautogui>=0.9,<1.0
+
+# UI-Stack (Tray + Settings + Web-Konsole)
+customtkinter>=6.0.0,<7.0
+pystray>=0.19,<0.21
+pillow>=10.0,<13.0
+pywebview>=5.0,<7.0
+
+# Windows-only
+pywin32>=308; sys_platform == "win32"
+windows-toasts>=1.0,<2.0; sys_platform == "win32"
+
+# Build-only (PyInstaller) ist im `build`-Extra und im uv.lock enthalten.
+# Ohne uv nur als nicht reproduzierbarer Fallback:
+#   pip install -r requirements.txt "pyinstaller>=6.10,<7.0"
+# Optional: nur installieren, wenn Wheel verfügbar.
+# webrtcvad>=2.0.10,<3.0

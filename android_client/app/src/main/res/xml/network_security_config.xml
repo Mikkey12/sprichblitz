@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The client is https-only (see net/UrlValidation.kt): the Bearer travels on every
+  authed call and the console bootstrap is TLS-only server-side. Cleartext is
+  therefore disabled outright — a plain-http backend cannot be configured anyway,
+  so allowing it here would only widen the attack surface.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

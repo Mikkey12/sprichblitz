@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sprichblitz-client"
+version = "0.1.0"
+description = "Sprichblitz – Windows dictation client (cross-platform-importable core)"
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Sprichblitz contributors" }]
+
+# Pflicht-Dependencies. Müssen auch auf macOS-Dev importierbar sein,
+# damit Etappe-5a-Logik unit-testbar ist.
+dependencies = [
+    "pydantic>=2.9,<3.0",
+    "loguru>=0.7,<0.8",
+    "httpx>=0.28,<0.30",
+    "numpy>=1.26,<3.0",
+    "sounddevice>=0.5,<0.6",
+    "pyperclip>=1.9,<2.0",
+    "keyring>=25.4,<26.0",
+    "keyboard>=0.13,<0.14",
+    "pyautogui>=0.9,<1.0",
+    # UI-Stack (Tray + Settings). Tk wird vom Python-Build gestellt –
+    # auf Homebrew-Python 3.12 ohne `python-tk` schlägt der Import zur
+    # Laufzeit fehl, deshalb sind alle Imports im Code lazy.
+    "customtkinter>=6.0.0,<7.0",
+    "pystray>=0.19,<0.21",
+    "pillow>=10.0,<13.0",
+    # Web-Konsole (eigener Webview-Prozess). Lazy-Import wie der übrige UI-Stack.
+    "pywebview>=5.0,<7.0",
+    # Windows-only Dependencies, auf macOS nicht installiert,
+    # Imports im Code mit try/except gekapselt.
+    "pywin32>=308; sys_platform == 'win32'",
+    "windows-toasts>=1.0,<2.0; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+# Optional: webrtcvad. `webrtcvad-wheels` liefert vorgebaute Wheels
+# (kein C-Compiler nötig, importiert weiterhin als `webrtcvad`).
+vad-webrtc = [
+    "webrtcvad-wheels>=2.0.10,<3.0",
+]
+build = [
+    "pyinstaller>=6.10,<7.0",
+]
+dev = [
+    "pytest>=8.3,<9.0",
+    "pytest-asyncio>=1.4.0,<1.5",
+    "respx>=0.21,<0.30",
+    "ruff>=0.15.22,<1.0",
+]
+
+[project.scripts]
+sprichblitz = "sprichblitz_client.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

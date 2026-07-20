@@ -1,0 +1,253 @@
+# Sprichblitz Backend – Hauptkonfiguration
+#
+# Diese Datei darf eingecheckt werden (keine Secrets).
+# Lokale Overrides gehören in config.local.yml (gitignored).
+# Geheime Werte: ${ENV_VAR}-Syntax verweist auf .env.
+
+server:
+  # Sicherer Tunnel-/Single-Host-Default: nicht direkt im LAN exponieren.
+  # Für bewusstes LAN-Serving in config.local.yml auf 0.0.0.0 überschreiben
+  # und den Port per Host-Firewall begrenzen. Docker setzt intern separat
+  # 0.0.0.0, veröffentlicht den Port aber nur auf Host-Loopback.
+  host: 127.0.0.1
+  port: 8000
+  # Interaktive OpenAPI-Doku unter /docs + Schema unter /openapi.json.
+  # Default AUS (öffentlich = unnötige Angriffsfläche + CDN-Assets). Für die
+  # lokale Entwicklung einschalten:
+  # docs: true
+  #
+  # Hinweis: KEINE proxy_headers/forwarded_allow_ips hier. uvicorn wird in
+  # __main__.py bewusst mit proxy_headers=False gestartet, weil die
+  # TrustedIngressMiddleware den ROHEN TCP-Peer braucht, um den Tunnel
+  # (cloudflared, Loopback) hart vom LAN zu trennen. Würde uvicorn
+  # X-Forwarded-For auswerten, könnte ein LAN-Client sich als Loopback
+  # ausgeben und require_tls über Klartext-http umgehen. (Die Keys wurden
+  # von ServerConfig ohnehin ignoriert – ab extra="forbid" wären sie ein
+  # Startfehler.)
+
+auth:
+  # Die mitgelieferten Android- und Windows-Clients verwenden ausschliesslich
+  # den Backend-Bearer. Daher im Standardbetrieb auf token_only belassen.
+  mode: token_only
+  # Beide mitgelieferten Clients binden den Einmal-Code an einen vor der ersten
+  # WebView-Navigation gesetzten Nonce-Cookie. Frische Installationen lehnen
+  # damit alte/nonce-lose Bootstrap-Codes ab.
+  require_console_nonce: true
+
+# Provider für processing_location=local (§6): lokal, ohne API-Key.
+# Online nutzt weiter die je Mode konfigurierten Provider.
+local_providers:
+  stt: lm_studio_whisper   # WhisperKit (Apple Silicon)
+  llm: lm_studio           # LM Studio (Qwen)
+
+stt_providers:
+  openai_whisper:
+    type: openai_compatible
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    model: whisper-1
+    # key_provider verknüpft diesen Cloud-Provider mit dem Per-User-BYO-Key
+    # (Konsole → „Konto & Keys"). OHNE key_provider wird KEIN Key gesendet → 401,
+    # und der Provider zeigt im Health-Check „offline" (der Probe fehlt der
+    # Nutzer-Key – das ist erwartetes Verhalten, kein Fehler). Lokale Provider
+    # (WhisperKit/LM Studio) bleiben bewusst OHNE key_provider.
+    key_provider: openai
+
+  # Cloud-STT-Alternative zu whisper-1: niedrigere WER, schneller (gleicher
+  # OpenAI-BYO-Key). Per-Modus (stt:) oder per-User in der Konsole wählbar.
+  openai_transcribe:
+    type: openai_compatible
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    model: gpt-4o-transcribe
+    key_provider: openai
+
+  lm_studio_whisper:
+    type: openai_compatible
+    # base_url zeigt auf deinen lokalen STT-Daemon. localhost = STT läuft auf
+    # DEMSELBEN Host wie das Backend. Läuft er auf einem anderen Gerät, trage
+    # dessen IP/Hostnamen ein; im Docker-Container: host.docker.internal.
+    # Für Schweizerdeutsch zeigt dieser Provider auf WhisperKit (:8080), siehe
+    # docs/whisper_local.md.
+    base_url: http://localhost:8080/v1
+    # WhisperKit stellt bewusst kein /v1/models bereit; Health liegt am Root.
+    health_path: /health
+    api_key_env: ""
+    model: whisper-large-v3-turbo
+
+  # Schnittstellen-Skelett. Wird in Etappe 3 als NotImplementedError-Stub angelegt.
+  # speechmatics:
+  #   type: speechmatics
+  #   base_url: https://asr.api.speechmatics.com/v2
+  #   api_key_env: SPEECHMATICS_API_KEY
+  #   model: enhanced
+
+llm_providers:
+  # Cloud-LLMs brauchen key_provider (Per-User-BYO-Key aus der Konsole);
+  # lokale Provider (lm_studio) bleiben ohne. Siehe Kommentar bei openai_whisper.
+  anthropic:
+    type: anthropic
+    api_key_env: ANTHROPIC_API_KEY
+    default_model: claude-haiku-4-5-20251001  # Latenz-Optimiert für Diktier-Tool
+    key_provider: anthropic
+  gemini:
+    type: gemini
+    api_key_env: GEMINI_API_KEY
+    default_model: gemini-2.5-flash
+    key_provider: gemini
+  openrouter:
+    type: openai_compatible
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    default_model: anthropic/claude-haiku-4-5
+    key_provider: openrouter
+  lm_studio:
+    type: openai_compatible
+    # Lokaler LLM (Qwen) über LM Studio. Wie oben: localhost = selber Host,
+    # sonst IP/Hostname bzw. host.docker.internal im Container.
+    base_url: http://localhost:1234/v1
+    api_key_env: ""
+    default_model: qwen3.5-9b
+  openai:
+    type: openai_compatible
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    default_model: gpt-4o-mini
+    key_provider: openai
+
+modes:
+  exact_de:
+    description: "Hochdeutsch wörtlich"
+    stt: openai_whisper
+    language: de
+    apply_llm: false
+
+  # exact_swiss-Pipeline (Stufe-0-Entscheid 2026-06-09, mit echter Mundart validiert):
+  # WhisperKit-STT (lokal) → Qwen-Hochdeutsch (lokal, geschärfter Prompt) → ß→ss.
+  # Grund für die lokale STT ist die QUALITÄT: Cloud-Whisper ist bei dichter Mundart
+  # unzuverlässig (fabuliert), lokales whisper-large-v3-turbo ist spürbar besser.
+  # Cloud-Whisper bleibt als fallback_stt konfiguriert (mit Toast).
+  # Der LLM-Schritt ist konsequenterweise ebenfalls lokal (llm: lm_studio): der STT
+  # läuft ohnehin lokal, und mit diesem geschärften Prompt ist nur Qwen validiert.
+  # KEIN LLM-Fallback – ohne LM Studio/Qwen bricht der LLM-Schritt (Cloud-LLM =
+  # dokumentierte Opt-in-Wahl auf eigenes Risiko). Dass das Audio dabei lokal bleibt,
+  # ist ein allgemeiner Vorteil jedes lokalen Modus – kein exklusives exact_swiss-
+  # Merkmal. Details: docs/swiss_german_strategy.md.
+  exact_swiss:
+    description: "Schweizerdeutsch (Mundart) → Hochdeutsch (LLM-Übersetzung)"
+    stt: lm_studio_whisper
+    language: de
+    prompt_hint: "Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch."
+    apply_llm: true
+    llm: lm_studio
+    fallback_stt: openai_whisper
+    output_prefill: ""
+    system_prompt: |
+      Du erhältst ein Schweizerdeutsch-/Mundart-Transkript. Gib es in
+      grammatikalisch korrektem Hochdeutsch zurück und korrigiere
+      AUSSCHLIESSLICH Dialekt-Grammatik und Mundartwörter – sonst nichts.
+
+      BEWAHREN (nicht antasten):
+      - Anrede/Register: „du" bleibt „du", „Sie" bleibt „Sie" – wandle NIE du↔Sie.
+      - Ton, Wortwahl, Gruss- und Schlussformeln WÖRTLICH („Ciao", „Hey",
+        „Notiz" bleiben so). Keine Synonyme, kein Paraphrasieren, kein Kürzen,
+        nichts ergänzen.
+      - Eigennamen (auch englische) unverändert.
+      - NICHT glätten, NICHT raten: unklare, unverständliche oder offensichtlich
+        falsch erkannte Segmente bleiben ROH/WÖRTLICH stehen – lieber sichtbar
+        rau als flüssig-falsch. Aus „bei de Strauss" wird NICHT „bei dir zu
+        sein"; ergibt etwas keinen Sinn, lass es wie gehört.
+
+      KORRIGIEREN (klare Dialekt-Grammatik), z. B.:
+      - periphrastisches „tut" auflösen: „stimmen tut" → „stimmt"
+      - Mundart-Verb/Partizip: „scho aaluege" → „schon angesehen"
+      - falsche Fälle: „für ich" → „für mich"
+
+      Antworte NUR mit dem Hochdeutsch-Text – ohne Einleitung, ohne
+      Anführungszeichen, ohne Kommentar.
+
+  mail:
+    description: "Schriftsprachlich für E-Mails"
+    stt: openai_whisper
+    language: de
+    apply_llm: true
+    llm: anthropic
+    output_prefill: ""
+    system_prompt: |
+      Du bist ein Sprach-Veredler. Wandle den folgenden gesprochenen deutschen
+      Text in flüssiges, schriftsprachliches Deutsch für eine E-Mail. Behalte den
+      Inhalt EXAKT und glätte nur Formulierung und Grammatik.
+      STRIKT BEWAHREN:
+      - Anrede/Register: „du" bleibt „du", „Sie" bleibt „Sie" – wandle NIE du↔Sie.
+        Ist keine Anrede vorhanden, füge keine hinzu.
+      - Perspektive und Anliegen des Sprechers unverändert.
+      Nichts erfinden, nichts ergänzen. Antworte NUR mit dem Text, ohne Einleitung.
+
+  rage:
+    description: "Wütend → höflich"
+    stt: openai_whisper
+    language: de
+    apply_llm: true
+    llm: anthropic
+    output_prefill: ""
+    system_prompt: |
+      Du formulierst eine verärgerte Nachricht höflich und sachlich um.
+      STRIKT BEWAHREN:
+      - Perspektive/Rolle: Der Sprecher bleibt der Sprecher. Wer sich beschwert,
+        beschwert sich weiterhin – NIEMALS in eine Entschuldigung, Rechtfertigung
+        oder Antwort der Gegenseite umdeuten. Rollen NIE tauschen.
+      - Anrede/Register: „du" bleibt „du", „Sie" bleibt „Sie" – wandle NIE du↔Sie.
+        Ist keine Anrede vorhanden, füge keine hinzu.
+      - Anliegen und Fakten (was falsch ist, was gefordert wird) exakt.
+      ÄNDERN: nur den Ton – Aggression, Beschimpfungen und Kraftausdrücke raus,
+      ruhig/höflich/professionell rein. Nichts erfinden, nichts ergänzen.
+      Antworte NUR mit dem überarbeiteten Text, ohne Einleitung.
+
+  emoji:
+    description: "Mit Emojis ergänzt"
+    stt: openai_whisper
+    language: de
+    apply_llm: true
+    llm: lm_studio
+    output_prefill: ""
+    system_prompt: |
+      Behalte den folgenden Text exakt wie gesprochen. Füge passende Emojis ein,
+      ungefähr eines pro Satz, und verteile sie im Text nach dem jeweiligen Satz –
+      nicht gebündelt am Ende. Antworte NUR mit dem Text.
+
+  mundart:
+    description: "Zürichdeutsch (Mundart-Text)"
+    stt: lm_studio_whisper       # WhisperKit, wie exact_swiss
+    language: de
+    prompt_hint: "Aufnahme in Schweizerdeutsch (Mundart)."
+    apply_llm: true
+    llm: lm_studio               # lokal, läuft out-of-the-box. Für beste Dialekt-Qualität: llm: anthropic (Claude, braucht Anthropic-BYO-Key)
+    fallback_stt: openai_whisper
+    output_prefill: ""
+    system_prompt: |
+      Du bist ein Übersetzer ins BREITE, GESCHRIEBENE ZÜRICHDEUTSCH (Mundart),
+      so wie man in Zürich WhatsApp/SMS schreibt – möglichst nah am gesprochenen
+      Klang. Du erhältst ein Schweizerdeutsch-Transkript, das das STT oft Richtung
+      Hochdeutsch normalisiert hat. Gib den Inhalt in breitem Züritüütsch zurück.
+      Wähle IMMER die breite Mundartform, nie die hochdeutschnahe.
+
+      STRIKT BEWAHREN: Inhalt 1:1 (nichts hinzufügen/weglassen/paraphrasieren),
+      Anrede/Register (du bleibt du, Sie/Grüezi bleibt Sie – nie wandeln),
+      Eigennamen, Gruss-/Schlussformeln. Nichts erfinden; unklare Stellen roh lassen.
+
+      Beispiele (Hochdeutsch → Züritüütsch):
+      1) Ich habe gestern mit dem Chef über das neue Projekt geredet und wir waren uns eigentlich schon ziemlich einig gewesen.
+      -> Ich ha geschter mitem Chef über s neue Projäkt gredt und mir sind öis eigetli scho ziemli einig gsi.
+      2) Das ist eigentlich gar nicht so kompliziert, wie ich gedacht habe.
+      -> Das isch eigetli gar nöd so kompliziert, wie ich dänkt ha.
+      3) Kannst du mir bitte noch schnell sagen, ob du auch kommst?
+      -> Chasch mer bitte no schnäll säge, öb du au chunnsch?
+      4) Wir gehen nachher zusammen etwas essen, hast du auch Lust?
+      -> Mir gönd nachhär zäme öppis go ässe, häsch au Luscht?
+      5) Ich muss noch kurz nach Hause, dann bin ich wirklich gleich da.
+      -> Ich mues no churz hei, dänn bin ich würkli grad da.
+      6) Guten Tag Herr Meier, ich melde mich wegen dem Termin am Freitag.
+      -> Grüezi Herr Meier, ich mälde mich wäge em Termin am Fritig.
+
+      Antworte NUR mit dem Züritüütsch-Text, ohne Einleitung, ohne
+      Anführungszeichen, ohne Kommentar.

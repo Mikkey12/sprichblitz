@@ -30,7 +30,7 @@ dependencies = [
     # Multiuser-Persistenz, Migrationen & Key-Vault (Etappe 1+2)
     "sqlmodel>=0.0.22,<0.1",
     "alembic>=1.14,<2.0",
-    "cryptography>=49.0.0,<50",
+    "cryptography>=50.0.0,<51",
     # Cloudflare-Access-JWT-Validierung (Etappe 6); nutzt das vorhandene cryptography.
     "pyjwt[crypto]>=2.13.0,<3.0",
 ]

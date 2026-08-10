@@ -15,7 +15,7 @@ dependencies = [
     "fastapi>=0.141.1,<0.142",
     "uvicorn[standard]>=0.52.1,<0.53",
     "pydantic>=2.9,<3.0",
-    "pydantic-settings>=2.6,<3.0",
+    "pydantic-settings>=2.15.0,<3.0",
     "PyYAML>=6.0,<7.0",
     "loguru>=0.7,<0.8",
     "python-multipart>=0.0.20,<0.1",
@@ -25,11 +25,11 @@ dependencies = [
     "scipy>=1.14,<2.0",
     "numpy>=1.26,<3.0",
     "python-dotenv>=1.0,<2.0",
-    "anthropic>=0.120.2,<1.0",
-    "google-genai>=2.16.0,<3.0",
+    "anthropic>=0.121.0,<1.0",
+    "google-genai>=2.17.0,<3.0",
     # Multiuser-Persistenz, Migrationen & Key-Vault (Etappe 1+2)
     "sqlmodel>=0.0.22,<0.1",
-    "alembic>=1.14,<2.0",
+    "alembic>=1.19.0,<2.0",
     "cryptography>=50.0.0,<51",
     # Cloudflare-Access-JWT-Validierung (Etappe 6); nutzt das vorhandene cryptography.
     "pyjwt[crypto]>=2.13.0,<3.0",
@@ -40,7 +40,7 @@ dev = [
     "pytest>=9.1.1,<10.0",
     "pytest-asyncio>=1.4.0,<1.5",
     "respx>=0.21,<0.30",
-    "ruff>=0.16.1,<1.0",
+    "ruff>=0.16.2,<1.0",
 ]
 
 [project.scripts]

@@ -12,9 +12,10 @@ import pytest
 
 from sprichblitz_client.app import ClientApp
 from sprichblitz_client.config import ClientConfig
+from sprichblitz_client.hotkeys.base import parse_hotkey
 from sprichblitz_client.models import Mode, ModeStatus
 from sprichblitz_client.ui.settings_window import SettingsWindow
-from sprichblitz_client.ui.tabs.modes_tab import ModesTab
+from sprichblitz_client.ui.tabs.modes_tab import ModesTab, _combo_from_keysym
 
 
 class _FakeWin:
@@ -121,3 +122,29 @@ def test_push_modes_without_settings_window_is_noop(monkeypatch: pytest.MonkeyPa
     app._refresh_modes_into_settings()  # kein Fenster → kein Thread, kein Call
 
     assert called == []
+
+
+# --- Win-Taste als Modifier bei der Hotkey-Aufnahme ------------------------- #
+
+
+def test_win_key_alone_keeps_waiting() -> None:
+    # Tk meldet die Win-Taste als Win_L/Win_R – sie darf nicht als Haupt-Taste
+    # im String landen (sonst "win+win_l" → nicht parsebar).
+    assert _combo_from_keysym("Win_L", 0x40000) is None
+    assert _combo_from_keysym("Win_R", 0x40000) is None
+
+
+def test_win_plus_f6_records_valid_hotkey() -> None:
+    combo = _combo_from_keysym("F6", 0x40000)
+    assert combo == "win+f6"
+    parse_hotkey(combo)  # darf nicht werfen
+
+
+def test_win_shift_f6_order_and_parse() -> None:
+    combo = _combo_from_keysym("F6", 0x40000 | 0x0001)
+    assert combo == "shift+win+f6"
+    assert parse_hotkey(combo).modifiers & 0x0008  # MOD_WIN gesetzt
+
+
+def test_plain_key_without_modifier() -> None:
+    assert _combo_from_keysym("F7", 0) == "f7"

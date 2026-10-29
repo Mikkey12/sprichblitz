@@ -189,7 +189,7 @@ class ClientApp:
             )
             return
         except Exception as exc:
-            logger.warning("Initial-Health-Check fehlgeschlagen: {}", exc)
+            logger.opt(exception=exc).warning("Initial-Health-Check fehlgeschlagen: {}", exc)
             notify(
                 "Sprichblitz",
                 "Backend nicht erreichbar – Settings prüfen.",
@@ -227,6 +227,7 @@ class ClientApp:
         if isinstance(self._hotkey_backend, Win32HotkeyBackend):
             err = self._hotkey_backend.last_error
             if err:
+                logger.warning("Hotkey-Konflikt: {}", err)
                 notify("Sprichblitz", f"Hotkey-Konflikt: {err}")
 
     # ------------------------------------------------------------------
@@ -428,6 +429,9 @@ class ClientApp:
             and self._settings_thread.is_alive()
         ):
             self._settings_window.request_show()
+            # Der Modi-Tab lebt von der Liste beim Bau des Fensters – ohne diesen
+            # Anstoss bliebe ein danach angelegter Modus unsichtbar.
+            self._refresh_modes_into_settings()
             return
 
         assert self._cfg is not None
@@ -449,6 +453,34 @@ class ClientApp:
             target=run_loop, name="sprichblitz-settings", daemon=True
         )
         self._settings_thread.start()
+        self._refresh_modes_into_settings()
+
+    def _refresh_modes_into_settings(self) -> None:
+        """Holt ``/me/modes`` im Hintergrund und schiebt das Ergebnis ins Fenster.
+
+        Ohne diesen Anstoss zeigt der Modi-Tab den Stand vom Client-Start: der
+        Refresh läuft sonst nur beim Start, nach dem Schliessen der Konsole und
+        nach dem Health-Check. Ein in der Konsole neu angelegter Modus bleibt
+        dadurch unsichtbar – und das Einstellungsfenster ist ein Singleton, dessen
+        Modi-Tab nur neu gebaut wird, wenn er die geänderte Liste bekommt.
+        Nicht blockierend und fail-open: der Hotkey-Kern darf nie an einem
+        Netz-Hickup hängen.
+        """
+        if self._settings_window is None:
+            return
+
+        threading.Thread(
+            target=self._push_modes_into_settings,
+            name="sprichblitz-settings-modes",
+            daemon=True,
+        ).start()
+
+    def _push_modes_into_settings(self) -> None:
+        """Worker: Modi frisch holen und dem Einstellungsfenster übergeben."""
+        self._refresh_modes()
+        window = self._settings_window
+        if window is not None:
+            window.set_modes(self._modes)
 
     def _open_console(self) -> None:
         """Öffnet die Web-Konsole in einem eigenen Webview-Prozess.
@@ -582,7 +614,7 @@ class ClientApp:
             with self._backend_client() as client:
                 modes = client.get_modes()
         except Exception as exc:
-            logger.warning("Modi-Refresh fehlgeschlagen (fail-open): {}", exc)
+            logger.opt(exception=exc).warning("Modi-Refresh fehlgeschlagen (fail-open): {}", exc)
             return
         self._modes = modes
 
@@ -595,7 +627,7 @@ class ClientApp:
             with self._backend_client() as client:
                 self._location = client.get_me().processing_location
         except Exception as exc:
-            logger.warning("Location-Refresh fehlgeschlagen (fail-open): {}", exc)
+            logger.opt(exception=exc).warning("Location-Refresh fehlgeschlagen (fail-open): {}", exc)
             return
         self._refresh_idle_tooltip()
 

@@ -226,3 +226,28 @@ def test_modes_admin_requires_admin(tls_client: TestClient, db_engine: Engine) -
     assert tls_client.get("/admin/modes", headers=_plain_headers()).status_code == 403
     assert _put_mode(tls_client, _plain_headers(), "notiz", description="x").status_code == 403
     assert tls_client.delete("/admin/modes/notiz", headers=_plain_headers()).status_code == 403
+
+
+def test_partial_put_keeps_the_other_fields(
+    tls_client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    """Nur ``enabled`` senden (Deaktivieren-Knopf) darf den Modus nicht zerstören.
+
+    Vorher landete ``mode.model_dump()`` mit allen ``None``-Werten im Upsert: ein
+    DB-Modus verlor dabei ``description`` und ``stt`` und war danach still aus
+    ``/me/modes`` verschwunden – sichtbar erst beim Wiedereinschalten.
+    """
+    _put_mode(
+        tls_client, auth_headers, "notiz",
+        description="Kurznotiz", stt="openai_whisper", apply_llm=False,
+    )
+
+    assert _put_mode(tls_client, auth_headers, "notiz", enabled=False).status_code == 200
+    aus = {m["mode_key"] for m in tls_client.get("/me/modes", headers=auth_headers).json()}
+    assert "notiz" not in aus  # deaktiviert = existiert für Clients nicht
+
+    assert _put_mode(tls_client, auth_headers, "notiz", enabled=True).status_code == 200
+    me = {m["mode_key"]: m for m in tls_client.get("/me/modes", headers=auth_headers).json()}
+    assert "notiz" in me, "Wiedereinschalten muss den Modus unverändert zurückbringen"
+    assert me["notiz"]["stt_provider"] == "openai_whisper"
+    assert me["notiz"]["display_name"] == "Kurznotiz"

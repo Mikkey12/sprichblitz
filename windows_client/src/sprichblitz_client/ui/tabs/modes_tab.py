@@ -35,6 +35,8 @@ _MODIFIER_KEYS = {
     "Shift_R",
     "Super_L",
     "Super_R",
+    "Win_L",
+    "Win_R",
     "Meta_L",
     "Meta_R",
 }
@@ -47,6 +49,7 @@ class ModesTab:
         cfg: ClientConfig,
         modes: Mapping[Mode, ModeStatus] | None = None,
         on_dirty: Callable[[], None] | None = None,
+        hotkey_overrides: Mapping[Mode, str] | None = None,
     ) -> None:
         import customtkinter as ctk  # type: ignore[import-not-found]
 
@@ -57,8 +60,11 @@ class ModesTab:
 
         parent.configure(fg_color=palette.SURFACE)
 
-        # Hotkey-Map aus Config in Lookup umwandeln.
+        # Hotkey-Map aus Config in Lookup umwandeln. ``hotkey_overrides`` (z. B.
+        # eingetippte, noch ungespeicherte Werte beim Tab-Rebuild) gewinnt.
         bindings = {b.mode: b.keys for b in cfg.hotkeys}
+        if hotkey_overrides:
+            bindings.update(hotkey_overrides)
 
         ctk.CTkLabel(
             parent,
@@ -167,6 +173,17 @@ class ModesTab:
             block.grid_columnconfigure(1, weight=1)
 
     # ------------------------------------------------------------------
+    def hotkey_values(self) -> dict[Mode, str]:
+        """Aktuell eingetippte Hotkeys je Modus – auch ungespeicherte.
+
+        Für den Tab-Rebuild: der Hintergrund-Refresh der Modusliste darf eine
+        halbfertige Eingabe nicht verwerfen.
+        """
+        values: dict[Mode, str] = {}
+        for mode, var in self._hotkey_vars.items():
+            values[mode] = str(var.get())  # type: ignore[attr-defined]
+        return values
+
     def apply(self) -> None:
         """Validiert Hotkeys und schreibt sie zurück in ClientConfig."""
         new_bindings: list[HotkeyBinding] = []
@@ -213,27 +230,11 @@ class ModesTab:
 
         def on_key(event):  # noqa: ANN001
             keysym = getattr(event, "keysym", "")
-            if not keysym or keysym in _MODIFIER_KEYS:
+            state = int(getattr(event, "state", 0))
+            combo = _combo_from_keysym(keysym, state)
+            if combo is None:
                 # Nur Modifier gedrückt → weiter warten.
                 return "break"
-            mods: list[str] = []
-            state = int(getattr(event, "state", 0))
-            # Tk Modifier-Bits (vom X11/Win32-Mapping):
-            #   Shift=0x1, Control=0x4, Mod1/Alt=0x8 (oder 0x20000 auf manchen Win),
-            #   Mod4/Win=0x40000.
-            if state & 0x0004:
-                mods.append("ctrl")
-            if state & 0x0008 or state & 0x20000:
-                mods.append("alt")
-            if state & 0x0001:
-                mods.append("shift")
-            if state & 0x40000:
-                mods.append("win")
-
-            key = keysym.lower()
-            # Tk gibt Buchstaben oft Gross-/Kleinschreibung-getreu zurück;
-            # für die Hotkey-Schreibweise normalisieren wir auf lower-case.
-            combo = "+".join(mods + [key])
             try:
                 parse_hotkey(combo)
             except InvalidHotkeyError:
@@ -248,6 +249,32 @@ class ModesTab:
 
         entry.focus_set()  # type: ignore[attr-defined]
         entry.bind("<KeyPress>", on_key)  # type: ignore[attr-defined]
+
+
+def _combo_from_keysym(keysym: str, state: int) -> str | None:
+    """Baut aus Tk-``keysym``/``state`` die Hotkey-Schreibweise.
+
+    ``None`` heisst „noch warten": reine Modifier-Taste gedrückt. Die
+    Win-Taste heisst in Tk ``Win_L``/``Win_R`` – fehlt sie hier, landet sie als
+    Haupt-Taste im String (``win+win_l``) und die Aufnahme scheitert.
+    """
+    if not keysym or keysym in _MODIFIER_KEYS:
+        return None
+    mods: list[str] = []
+    # Tk Modifier-Bits (vom X11/Win32-Mapping):
+    #   Shift=0x1, Control=0x4, Mod1/Alt=0x8 (oder 0x20000 auf manchen Win),
+    #   Mod4/Win=0x40000.
+    if state & 0x0004:
+        mods.append("ctrl")
+    if state & 0x0008 or state & 0x20000:
+        mods.append("alt")
+    if state & 0x0001:
+        mods.append("shift")
+    if state & 0x40000:
+        mods.append("win")
+    # Tk gibt Buchstaben oft Gross-/Kleinschreibung-getreu zurück;
+    # für die Hotkey-Schreibweise normalisieren wir auf lower-case.
+    return "+".join(mods + [keysym.lower()])
 
 
 def _ordered_modes(

@@ -48,6 +48,8 @@ class SettingsWindow:
         self._win: object | None = None
         self._dirty = False
         self._tabs: list[object] = []
+        self._modes_frame: object | None = None
+        self._modes_tab: ModesTab | None = None
 
     def run(self) -> None:
         """Blockt: baut Tk auf und startet Mainloop. Mainloop endet erst bei
@@ -92,6 +94,8 @@ class SettingsWindow:
             modes=self._modes,
             on_dirty=self._mark_dirty,
         )
+        self._modes_frame = modes_frame
+        self._modes_tab = modes_tab
         behaviour_tab = BehaviourTab(behaviour_frame, self._cfg, on_dirty=self._mark_dirty)
         about_tab = AboutTab(about_frame, self._cfg)
         self._tabs = [backend_tab, modes_tab, behaviour_tab, about_tab]
@@ -144,6 +148,53 @@ class SettingsWindow:
             self._win.after(0, self._do_show)  # type: ignore[attr-defined]
         except Exception as exc:  # pragma: no cover - mainloop dead
             logger.warning("Settings request_show fehlgeschlagen: {}", exc)
+
+    # ------------------------------------------------------------------
+    def set_modes(self, modes: Mapping[Mode, ModeStatus]) -> None:
+        """Aktualisiert die Modusliste; baut den Modi-Tab bei Änderung neu auf.
+
+        Wird aus dem Refresh-Thread der App aufgerufen, deshalb geht die
+        Tk-Arbeit über ``after(0, …)`` in den Mainloop. Eine unveränderte Liste
+        ist ein No-Op – ein Rebuild würde nur unnötig Eingaben anfassen.
+        """
+        snapshot = dict(modes)
+        if snapshot == self._modes:
+            return
+        self._modes = snapshot
+        if self._win is None:
+            return  # Fenster noch nicht gebaut: der Tab nutzt beim Bau diese Liste
+        try:
+            self._win.after(0, self._rebuild_modes_tab)  # type: ignore[attr-defined]
+        except Exception as exc:  # pragma: no cover - Mainloop bereits beendet
+            logger.warning("Modi-Rebuild nicht einplanbar: {}", exc)
+
+    def _rebuild_modes_tab(self) -> None:
+        """Modi-Tab mit der aktuellen Liste neu aufbauen – nur dieser Tab.
+
+        Kein neues ``CTk()`` (das kostet die bekannten 10 s), und die bereits
+        eingetippten, noch nicht gespeicherten Hotkeys werden übernommen: ein
+        Hintergrund-Refresh darf keine Eingabe verwerfen.
+        """
+        frame = self._modes_frame
+        if frame is None:
+            return
+        pending: dict[Mode, str] = {}
+        if self._modes_tab is not None:
+            pending = self._modes_tab.hotkey_values()
+        for child in frame.winfo_children():  # type: ignore[attr-defined]
+            child.destroy()
+        tab = ModesTab(
+            frame,
+            self._cfg,
+            modes=self._modes,
+            on_dirty=self._mark_dirty,
+            hotkey_overrides=pending,
+        )
+        self._modes_tab = tab
+        self._tabs = [
+            tab if isinstance(existing, ModesTab) else existing for existing in self._tabs
+        ]
+        logger.info("Modi-Tab neu aufgebaut: {}", ", ".join(sorted(m.value for m in self._modes)))
 
     def _do_show(self) -> None:
         if self._win is None:

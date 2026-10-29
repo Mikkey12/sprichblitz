@@ -50,7 +50,7 @@ def test_unset_field_keeps_config_value(
     _put_mode(tls_client, auth_headers, "exact_swiss", description="Nur der Name")
     modes = {m["mode_key"]: m for m in tls_client.get("/admin/modes", headers=auth_headers).json()}
     assert modes["exact_swiss"]["description"] == "Nur der Name"
-    assert modes["exact_swiss"]["stt"] == "lm_studio_whisper"  # aus config.yml
+    assert modes["exact_swiss"]["stt"] == "whisperkit"  # aus config.yml
     assert modes["exact_swiss"]["fallback_stt"] == "openai_whisper"  # aus config.yml
 
 

@@ -46,11 +46,11 @@ def test_full_stt_override_switches_provider(
         "/full",
         headers=auth_headers,
         files={"file": ("h.wav", audio_16k_wav, "audio/wav")},
-        data={"mode": "exact_de", "stt": "lm_studio_whisper"},
+        data={"mode": "exact_de", "stt": "whisperkit"},
     )
     assert res.status_code == 200, res.text
     body = res.json()
-    assert body["stt_provider"] == "lm_studio_whisper"
+    assert body["stt_provider"] == "whisperkit"
     assert body["raw_text"] == "local transcript"
 
 

@@ -45,7 +45,7 @@ async def test_no_auth_header_for_local_provider_without_key() -> None:
     kein ``Authorization``-Header rausgehen.
 
     Seit die STT-Dispatch type-basiert laeuft, bedient genau diese Klasse auch die
-    lokalen ``openai_compatible``-Endpunkte (Config-Provider ``lm_studio_whisper``
+    lokalen ``openai_compatible``-Endpunkte (Config-Provider ``whisperkit``
     mit ``api_key_env: ""``). Ein versehentlich mitgeschickter leerer Bearer waere
     bestenfalls Muell, schlimmstenfalls ein 401 gegen den eigenen Daemon.
     """
@@ -53,7 +53,7 @@ async def test_no_auth_header_for_local_provider_without_key() -> None:
         return_value=Response(200, json={"text": "Grüezi"})
     )
     provider = OpenAIWhisperProvider(
-        name="lm_studio_whisper",
+        name="whisperkit",
         base_url="http://localhost:8080/v1",
         api_key_env="",
         model="whisper-large-v3-turbo",

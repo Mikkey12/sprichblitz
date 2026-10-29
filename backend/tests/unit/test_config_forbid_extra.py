@@ -32,7 +32,7 @@ def test_example_config_validates() -> None:
     assert cfg.server.host == "127.0.0.1"
     assert "openai_whisper" in cfg.stt_providers
     assert cfg.stt_providers["openai_whisper"].key_provider == "openai"
-    assert cfg.stt_providers["lm_studio_whisper"].health_path == "/health"
+    assert cfg.stt_providers["whisperkit"].health_path == "/health"
 
 
 @pytest.mark.parametrize(
@@ -61,7 +61,7 @@ def test_example_plus_docker_local_merges_and_validates() -> None:
     cfg = load_config(main_path=_EXAMPLE, local_path=_DOCKER_LOCAL, load_env=False)
     # Override aus docker.local.yml griff:
     assert cfg.server.host == "0.0.0.0"
-    assert cfg.stt_providers["lm_studio_whisper"].base_url == "http://host.docker.internal:8080/v1"
+    assert cfg.stt_providers["whisperkit"].base_url == "http://host.docker.internal:8080/v1"
     assert cfg.llm_providers["lm_studio"].base_url == "http://host.docker.internal:1234/v1"
 
 

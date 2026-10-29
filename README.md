@@ -62,7 +62,7 @@ Web-Konsole, ohne Code und ohne Neustart.
 
 > **Naming-Hinweis:** Der lokale STT für `exact_swiss` läuft über **WhisperKit**
 > (eigener Daemon auf `:8080`). Der Config-Provider heisst aus historischen
-> Gründen `lm_studio_whisper` – das ist **nicht** LM Studio. LM Studio (`:1234`)
+> Gründen `whisperkit` – das ist **nicht** LM Studio. LM Studio (`:1234`)
 > bedient nur das lokale **LLM** (Qwen).
 
 ## Screenshots

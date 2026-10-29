@@ -49,5 +49,5 @@ def test_compose_origin_and_local_provider_ports_are_hardened() -> None:
         (_REPO_ROOT / "deployment/docker/docker.local.yml").read_text(encoding="utf-8")
     )
     assert local["server"]["host"] == "0.0.0.0"
-    assert local["stt_providers"]["lm_studio_whisper"]["base_url"].endswith(":8080/v1")
+    assert local["stt_providers"]["whisperkit"]["base_url"].endswith(":8080/v1")
     assert local["llm_providers"]["lm_studio"]["base_url"].endswith(":1234/v1")

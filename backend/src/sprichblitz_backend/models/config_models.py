@@ -99,7 +99,7 @@ class LocalProvidersConfig(BaseModel):
 
     # Provider für processing_location=local (§6): WhisperKit-STT + LM-Studio-Qwen-LLM.
     # Gelten für ALLE Modi (beide Stufen); online nutzt weiter die per-Mode-Provider.
-    stt: str = "lm_studio_whisper"
+    stt: str = "whisperkit"
     llm: str = "lm_studio"
 
 

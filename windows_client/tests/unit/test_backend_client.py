@@ -54,7 +54,7 @@ def test_full_sets_bearer_header_and_multipart_field() -> None:
                 "mode": "exact_swiss",
                 "raw_text": "x",
                 "final_text": "x",
-                "stt_provider": "lm_studio_whisper",
+                "stt_provider": "whisperkit",
                 "stt_model": "whisper-large-v3-turbo",
                 "used_fallback": True,
                 "total_duration_ms": 1,

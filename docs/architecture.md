@@ -82,7 +82,7 @@ Ein Mac-Client existiert nicht (und steht auch nicht in Arbeit).
   Daemon, `:8080`, Apple Silicon). Er serviert seit 2026-07-15 einen
   **Schweizerdeutsch-Fine-tune** (`Flix-AI/flix-swissgerman-full`, Apache-2.0) statt
   des generischen Whisper – Details `docs/whisper_local.md`. Der Config-Provider
-  `lm_studio_whisper` ist ein **historischer Name** – nicht LM Studio. LM Studio
+  `whisperkit` ist ein **historischer Name** – nicht LM Studio. LM Studio
   (`:1234`) liefert nur das lokale Qwen-**LLM**.
 - **Betrieb/Härtung:** SECRET_KEY-Backup, Fernet-Rotation, env-Key-Härtung →
   **`docs/operations.md`**.
@@ -219,8 +219,8 @@ NICHT triggert auf:
 | Modus | Primary STT | Fallback STT | LLM | Bemerkung |
 |---|---|---|---|---|
 | `exact_de` | openai_whisper | – | – | Cloud-only |
-| `exact_swiss` | lm_studio_whisper | openai_whisper | lm_studio (Qwen) | mit Schweizerdeutsch-Prompt-Hint; Fallback nutzt Hochdeutsch |
-| `mundart` | lm_studio_whisper | openai_whisper | je Config | STT wie `exact_swiss`; das LLM re-dialektisiert per `system_prompt` zurück ins geschriebene Zürichdeutsch (das STT normalisiert Richtung Hochdeutsch) |
+| `exact_swiss` | whisperkit | openai_whisper | lm_studio (Qwen) | mit Schweizerdeutsch-Prompt-Hint; Fallback nutzt Hochdeutsch |
+| `mundart` | whisperkit | openai_whisper | je Config | STT wie `exact_swiss`; das LLM re-dialektisiert per `system_prompt` zurück ins geschriebene Zürichdeutsch (das STT normalisiert Richtung Hochdeutsch) |
 | `mail` | openai_whisper | – | anthropic (Haiku) | – |
 | `rage` | openai_whisper | – | anthropic (Haiku) | – |
 | `emoji` | openai_whisper | – | lm_studio (Qwen) | LLM kann ausfallen → Backend gibt Fehler, kein automatischer Cloud-Fallback fürs LLM |

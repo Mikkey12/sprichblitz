@@ -19,8 +19,8 @@
 #     application_aud: "<access-application-aud>"
 
 # stt_providers:
-#   lm_studio_whisper:
-#     # Trotz des historischen Namens („lm_studio_whisper") zeigt der
+#   whisperkit:
+#     # Trotz des historischen Namens („whisperkit") zeigt der
 #     # diesen Provider auf den lokalen WhisperKit-Server: ein
 #     # Daemon auf dem Mac (Apple Silicon), OpenAI-API-kompatibel,
 #     # Port 8080. Installation & Betrieb: docs/whisper_local.md.
@@ -49,28 +49,28 @@
 # base_url/model an deine lokale Installation anpassen.
 #
 # stt_providers:
-#   lm_studio_whisper:
+#   whisperkit:
 #     base_url: http://localhost:8080/v1   # WhisperKit-Server
 #     health_path: /health
 #     model: whisper-large-v3-turbo
 #
 # modes:
 #   exact_de:
-#     stt: lm_studio_whisper               # statt Cloud-Whisper
+#     stt: whisperkit               # statt Cloud-Whisper
 #     fallback_stt: openai_whisper         # Cloud nur als Fallback
 #   exact_swiss:
-#     stt: lm_studio_whisper
+#     stt: whisperkit
 #     fallback_stt: openai_whisper
 #   mail:
-#     stt: lm_studio_whisper
+#     stt: whisperkit
 #     fallback_stt: openai_whisper
 #     llm: lm_studio                       # lokales LLM statt Anthropic
 #   rage:
-#     stt: lm_studio_whisper
+#     stt: whisperkit
 #     fallback_stt: openai_whisper
 #     llm: lm_studio
 #   emoji:
-#     stt: lm_studio_whisper
+#     stt: whisperkit
 #     fallback_stt: openai_whisper
 #     llm: lm_studio                       # ist bereits Default
 #

@@ -37,7 +37,7 @@ auth:
 # Provider für processing_location=local (§6): lokal, ohne API-Key.
 # Online nutzt weiter die je Mode konfigurierten Provider.
 local_providers:
-  stt: lm_studio_whisper   # WhisperKit (Apple Silicon)
+  stt: whisperkit   # WhisperKit (Apple Silicon)
   llm: lm_studio           # LM Studio (Qwen)
 
 stt_providers:
@@ -62,7 +62,7 @@ stt_providers:
     model: gpt-4o-transcribe
     key_provider: openai
 
-  lm_studio_whisper:
+  whisperkit:
     type: openai_compatible
     # base_url zeigt auf deinen lokalen STT-Daemon. localhost = STT läuft auf
     # DEMSELBEN Host wie das Backend. Läuft er auf einem anderen Gerät, trage
@@ -135,7 +135,7 @@ modes:
   # Merkmal. Details: docs/swiss_german_strategy.md.
   exact_swiss:
     description: "Schweizerdeutsch (Mundart) → Hochdeutsch (LLM-Übersetzung)"
-    stt: lm_studio_whisper
+    stt: whisperkit
     language: de
     prompt_hint: "Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch."
     apply_llm: true
@@ -217,7 +217,7 @@ modes:
 
   mundart:
     description: "Zürichdeutsch (Mundart-Text)"
-    stt: lm_studio_whisper       # WhisperKit, wie exact_swiss
+    stt: whisperkit       # WhisperKit, wie exact_swiss
     language: de
     prompt_hint: "Aufnahme in Schweizerdeutsch (Mundart)."
     apply_llm: true

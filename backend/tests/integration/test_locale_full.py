@@ -16,7 +16,7 @@ def eszett_client(db_engine, key_vault):
             "openai_whisper": StubSTT(
                 "openai_whisper", text="Die Straße ist groß und weiß."
             ),
-            "lm_studio_whisper": StubSTT("lm_studio_whisper", text="lokal"),
+            "whisperkit": StubSTT("whisperkit", text="lokal"),
         },
         llm={"anthropic": StubLLM("anthropic", text="Strasse bleibt.")},
     )

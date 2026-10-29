@@ -18,7 +18,7 @@ from .local_gate import LocalInferenceGate
 # ProviderUnavailable) ODER eine gültige Antwort ohne verwertbaren Text
 # (ProviderEmptyResult). Ein 4xx-Status (Quota/Bad-Request) nutzt die Basisklasse
 # ProviderInvalidResponse und ist hier BEWUSST NICHT enthalten – er wird 1:1 an
-# den Client gereicht, damit die aufrufende Person ihn sieht.
+# den Client gereicht, damit Marc ihn sieht.
 _FALLBACK_TRIGGERS = (ProviderUnavailable, ProviderEmptyResult)
 
 
@@ -86,8 +86,25 @@ async def transcribe_for_mode(
     # versuchen. OHNE Fallback bleibt "" ein gültiges Ergebnis (z. B. Stille) und
     # erzeugt KEINEN Fehler.
     if mode.fallback_stt and not result.text.strip():
+        # WhisperKit liefert bei manchen prompt_hints ein leeres Transkript zurück
+        # (belegt: "Schreibe das Transkript in Hochdeutsch." → "", dieselbe Aufnahme
+        # ohne den Satz → Text). Ein zweiter Versuch ohne Hint hält das Audio lokal,
+        # statt es still an die Cloud zu geben.
         logger.warning(
-            "Primary STT returned blank text, trying fallback",
+            "Primary STT returned blank text, retrying without prompt_hint",
+            primary=primary.name,
+        )
+        ohne_hint = mode.model_copy(update={"prompt_hint": None})
+        try:
+            zweiter = await _transcribe(primary, audio_wav, ohne_hint, primary_key, gate)
+        except _FALLBACK_TRIGGERS:
+            zweiter = None
+        if zweiter is not None and zweiter.text.strip():
+            logger.info("Primary STT delivered text on retry", primary=primary.name)
+            return TranscribeOutcome(result=zweiter, used_fallback=False)
+
+        logger.warning(
+            "Primary STT blank again, trying fallback",
             primary=primary.name,
             fallback=mode.fallback_stt,
         )

@@ -21,8 +21,8 @@ fest, was wir tun, was wir getestet haben und welche Optionen offen sind.
 
 | Punkt | Status |
 |---|---|
-| Modus-Konfiguration | `exact_swiss` und `mundart` laufen mit `lm_studio_whisper` als Primary, `openai_whisper` als Fallback. |
-| Primär-Provider | **WhisperKit Local Server** (Daemon auf einem Apple-Silicon-Mac, Port 8080, OpenAI-API-kompatibel). Provider-Name bleibt aus Rückwärtskompatibilität `lm_studio_whisper` – tatsächlich zeigt er per `config.local.yml`-Override auf `localhost:8080`. |
+| Modus-Konfiguration | `exact_swiss` und `mundart` laufen mit `whisperkit` als Primary, `openai_whisper` als Fallback. |
+| Primär-Provider | **WhisperKit Local Server** (Daemon auf einem Apple-Silicon-Mac, Port 8080, OpenAI-API-kompatibel). Provider-Name bleibt aus Rückwärtskompatibilität `whisperkit` – tatsächlich zeigt er per `config.local.yml`-Override auf `localhost:8080`. |
 | Modell | **`Flix-AI/flix-swissgerman-full`** – ein Schweizerdeutsch-Fine-tune von whisper-large-v3 (Apache-2.0, 1367 h Trainingsdaten), konvertiert nach WhisperKit-CoreML. Läuft auf der **Neural Engine** (~99.86 % ANE-Dispatch), nicht mehr auf Metal. Löst „Option C" unten ein. |
 | Prompt-Hint | „Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch." |
 | Erfolg primär | Stabil. WhisperKit ersetzt das frühere LM-Studio-Whisper-Setup, das mit dem mlx-AsrEngine-Bug kämpfte (siehe „Historisches" unten). |
@@ -37,7 +37,7 @@ LaunchAgent): `docs/whisper_local.md`.
 
 Mit echter Mundart validiert (5 Sätze + isolierter ß-Clip). **Kanonisch:**
 
-`exact_swiss` = **WhisperKit-STT** (`lm_studio_whisper`, Prompt-Hint) →
+`exact_swiss` = **WhisperKit-STT** (`whisperkit`, Prompt-Hint) →
 **Qwen-LLM** (`lm_studio`, `apply_llm: true`, geschärfter System-Prompt) →
 deterministische **`ß→ss`**-Korrektur (de-CH-Orthografie).
 

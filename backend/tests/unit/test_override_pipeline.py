@@ -63,10 +63,10 @@ def test_stt_override_applies_online(
     client, db_engine, auth_headers, make_wav_bytes
 ) -> None:
     # exact_de nutzt per Default Cloud-Whisper; Override auf den lokalen STT wirkt online.
-    _override(db_engine, "exact_de", stt_provider="lm_studio_whisper", enabled=True)
+    _override(db_engine, "exact_de", stt_provider="whisperkit", enabled=True)
     res = _post(client, auth_headers, "exact_de", make_wav_bytes(16_000, 2.0))
     assert res.status_code == 200, res.text
-    assert res.json()["stt_provider"] == "lm_studio_whisper"
+    assert res.json()["stt_provider"] == "whisperkit"
 
 
 def test_stt_override_clears_fallback(
@@ -77,10 +77,10 @@ def test_stt_override_clears_fallback(
     async def _boom(*a, **k):
         from sprichblitz_backend.util.errors import ProviderUnavailable
 
-        raise ProviderUnavailable("down", provider="lm_studio_whisper")
+        raise ProviderUnavailable("down", provider="whisperkit")
 
-    stub_registry.stt["lm_studio_whisper"].transcribe = _boom
-    _override(db_engine, "exact_swiss", stt_provider="lm_studio_whisper", enabled=True)
+    stub_registry.stt["whisperkit"].transcribe = _boom
+    _override(db_engine, "exact_swiss", stt_provider="whisperkit", enabled=True)
     res = _post(client, auth_headers, "exact_swiss", make_wav_bytes(16_000, 2.0))
     assert res.status_code == 503  # kein Fallback auf Cloud-Whisper
     assert stub_registry.stt["openai_whisper"].calls == []
@@ -102,7 +102,7 @@ def test_preferred_online_llm_silently_ignored_in_local(
     res = _post(client, auth_headers, "mail", make_wav_bytes(16_000, 2.0))
     assert res.status_code == 200  # KEIN Fehler
     body = res.json()
-    assert body["stt_provider"] == "lm_studio_whisper"  # lokal, Cloud-STT still ignoriert
+    assert body["stt_provider"] == "whisperkit"  # lokal, Cloud-STT still ignoriert
     assert body["llm_provider"] == "lm_studio"  # Qwen lokal, preferred ignoriert
 
 

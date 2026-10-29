@@ -51,7 +51,7 @@ Local providers on the reference Apple-Silicon host:
 - **WhisperKit Local Server** — daemon, port `8080`, OpenAI-API-compatible (`/v1/audio/transcriptions`, `/health`; **no** `/v1/models` endpoint). Drives `exact_swiss` + `mundart` STT. Serves a **Swiss-German fine-tune** (`Flix-AI/flix-swissgerman-full`, converted to WhisperKit-CoreML, runs on the Apple **Neural Engine**) — not the generic `whisper-large-v3-turbo` any more. Swapping the model = edit the LaunchAgent's `--model-path`, the backend needs no change.
 - **LM Studio** — OpenAI-API-compatible; the public docs use
   `192.168.1.10:1234` as an example and the real host belongs in the ignored
-  `config.local.yml`. Used for **LLM post-processing** (`emoji` mode **and** the canonical `exact_swiss` Hochdeutsch-cleanup — both local Qwen). The historic STT provider name `lm_studio_whisper` is kept for backwards-compat but now points at WhisperKit via local override.
+  `config.local.yml`. Used for **LLM post-processing** (`emoji` mode **and** the canonical `exact_swiss` Hochdeutsch-cleanup — both local Qwen). The historic STT provider name `whisperkit` is kept for backwards-compat but now points at WhisperKit via local override.
 
 Cloud STT alternatives: `openai_whisper` (`whisper-1`) and **`openai_transcribe`** (`gpt-4o-transcribe`) — selectable per mode or per user. STT provider dispatch is **type-based** like the LLM one, so a new STT provider is also pure config.
 

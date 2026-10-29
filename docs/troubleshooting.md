@@ -58,7 +58,7 @@ die Adresse aus der gitignorierten lokalen Konfiguration ersetzt werden.
 2. **Anthropic-spezifisch**: Wenn der Key stimmt, aber Calls trotzdem
    fehlschlagen → siehe „Anthropic Credit-Balance" weiter unten.
 
-3. **LM-Studio-Provider** (`lm_studio_whisper`, `lm_studio`):
+3. **LM-Studio-Provider** (`whisperkit`, `lm_studio`):
    ```bash
    curl http://192.168.1.10:1234/v1/models | jq '.data[].id'
    ```

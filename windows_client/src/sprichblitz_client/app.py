@@ -189,7 +189,7 @@ class ClientApp:
             )
             return
         except Exception as exc:
-            logger.warning("Initial-Health-Check fehlgeschlagen: {}", exc)
+            logger.opt(exception=exc).warning("Initial-Health-Check fehlgeschlagen: {}", exc)
             notify(
                 "Sprichblitz",
                 "Backend nicht erreichbar – Settings prüfen.",
@@ -613,7 +613,7 @@ class ClientApp:
             with self._backend_client() as client:
                 modes = client.get_modes()
         except Exception as exc:
-            logger.warning("Modi-Refresh fehlgeschlagen (fail-open): {}", exc)
+            logger.opt(exception=exc).warning("Modi-Refresh fehlgeschlagen (fail-open): {}", exc)
             return
         self._modes = modes
 
@@ -626,7 +626,7 @@ class ClientApp:
             with self._backend_client() as client:
                 self._location = client.get_me().processing_location
         except Exception as exc:
-            logger.warning("Location-Refresh fehlgeschlagen (fail-open): {}", exc)
+            logger.opt(exception=exc).warning("Location-Refresh fehlgeschlagen (fail-open): {}", exc)
             return
         self._refresh_idle_tooltip()
 

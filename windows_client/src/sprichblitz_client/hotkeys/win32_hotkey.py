@@ -17,6 +17,8 @@ import sys
 import threading
 from collections.abc import Callable
 
+from loguru import logger
+
 from .base import MOD_NOREPEAT, HotkeyBackend, HotkeyCombo
 
 # WM_HOTKEY und PeekMessageW-Konstanten.
@@ -62,10 +64,11 @@ class Win32HotkeyBackend(HotkeyBackend):
         import ctypes
         from ctypes import wintypes
 
-        user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+        user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined]
 
         # Hotkeys MÜSSEN aus dem Thread registriert werden, der die
         # Messages auch empfängt – ``RegisterHotKey`` ist thread-bound.
+        registered = 0
         for combo, callback in self._registrations:
             hotkey_id = self._next_id
             self._next_id += 1
@@ -76,9 +79,26 @@ class Win32HotkeyBackend(HotkeyBackend):
                 combo.vk,
             )
             if not ok:
+                # WinError 1409 = Hotkey gehört bereits einem anderen Prozess;
+                # ohne diese Zeile blieb nur ein einmaliger Toast beim Start, der
+                # sich nicht mehr nachprüfen lässt ("Hotkey tut nichts").
+                win_error = ctypes.get_last_error()
                 self._error = f"RegisterHotKey fehlgeschlagen für {combo.raw}"
+                logger.warning(
+                    "Hotkey {} nicht registriert (WinError {}) – belegt oder von "
+                    "Windows reserviert; Kombination in den Einstellungen ändern",
+                    combo.raw,
+                    win_error,
+                )
                 continue
             self._id_to_callback[hotkey_id] = callback
+            registered += 1
+        logger.info(
+            "Hotkeys aktiv: {}/{} ({})",
+            registered,
+            len(self._registrations),
+            ", ".join(c.raw for c, _ in self._registrations),
+        )
 
         msg = wintypes.MSG()
         try:

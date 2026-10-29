@@ -227,6 +227,7 @@ class ClientApp:
         if isinstance(self._hotkey_backend, Win32HotkeyBackend):
             err = self._hotkey_backend.last_error
             if err:
+                logger.warning("Hotkey-Konflikt: {}", err)
                 notify("Sprichblitz", f"Hotkey-Konflikt: {err}")
 
     # ------------------------------------------------------------------

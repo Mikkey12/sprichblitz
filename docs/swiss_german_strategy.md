@@ -24,8 +24,8 @@ fest, was wir tun, was wir getestet haben und welche Optionen offen sind.
 | Modus-Konfiguration | `exact_swiss` und `mundart` laufen mit `whisperkit` als Primary, `openai_whisper` als Fallback. |
 | Primär-Provider | **WhisperKit Local Server** (Daemon auf einem Apple-Silicon-Mac, Port 8080, OpenAI-API-kompatibel). Provider-Name bleibt aus Rückwärtskompatibilität `whisperkit` – tatsächlich zeigt er per `config.local.yml`-Override auf `localhost:8080`. |
 | Modell | **`Flix-AI/flix-swissgerman-full`** – ein Schweizerdeutsch-Fine-tune von whisper-large-v3 (Apache-2.0, 1367 h Trainingsdaten), konvertiert nach WhisperKit-CoreML. Läuft auf der **Neural Engine** (~99.86 % ANE-Dispatch), nicht mehr auf Metal. Löst „Option C" unten ein. |
-| Prompt-Hint | „Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch." |
-| Erfolg primär | Stabil. WhisperKit ersetzt das frühere LM-Studio-Whisper-Setup, das mit dem mlx-AsrEngine-Bug kämpfte (siehe „Historisches" unten). |
+| Prompt-Hint | „Aufnahme in Schweizerdeutsch (Mundart)." – die Hochdeutsch-Fassung macht der LLM-Schritt. Der frühere Zusatz «Schreibe das Transkript in Hochdeutsch.» liess den Flix-Fine-tune **leer** antworten (2026-10-29), was still in den Cloud-Fallback führte. |
+| Erfolg primär | Stabil. WhisperKit ersetzt das frühere LM-Studio-Whisper-Setup, das mit dem mlx-AsrEngine-Bug kämpfte (siehe „Historisches" unten). Provider-Schlüssel seit 2026-10-29 `whisperkit` (vorher `lm_studio_whisper`), Dienst nur noch auf Loopback. |
 | Erfolg Fallback | Cloud-Whisper mit dem gleichen Prompt erkennt Hochdeutsche Texte, kann aber bei dichtem Schweizerdeutsch ins Erfinden kippen. Nicht-katastrophal, aber spürbar schlechter. |
 | Toast bei Fallback | Ja – Client zeigt „Fallback-STT verwendet (openai_whisper)" |
 | Performance | Auf einem leistungsfähigen Apple-Silicon-Mac warm ungefähr in Echtzeitnähe – **keine beobachtete Regression** gegenüber dem generischen `large-v3-turbo` trotz des grösseren Modells (die ANE trägt das). Der erste Ladevorgang eines frisch konvertierten Modells kompiliert einmalig länger, danach wird das Ergebnis gecacht. |
@@ -100,6 +100,7 @@ ein Eintrag (Phase-1-Default), weiteres wird beim Probieren ergänzt.
 |---|---|---|---|---|---|
 | 2026-05-01 | `whisper-large-v3-turbo` (GGUF, q5_0) | LM Studio (llama.cpp) | „Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch." | 3 | Default. Hochdeutsche Hauptbegriffe stimmen, dialektale Nuancen werden geglättet. |
 | 2026-05-05 | `whisper-large-v3-turbo` | WhisperKit (Apple Metal, lokal Port 8080) | „Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch." | — | Smoke-Test mit `say`-generiertem Hochdeutsch-Sample, kein Mundart. Transkript sauber, RTF ~2.7× warm. Mundart-WER folgt mit echten Aufnahmen. |
+| 2026-10-29 | `Flix-AI/flix-swissgerman-full` | WhisperKit (ANE, Loopback `127.0.0.1:8080`) | „Aufnahme in Schweizerdeutsch (Mundart)." | 1 (4,3 s `say`-Sample) | Der frühere Hint-Zusatz «Schreibe das Transkript in Hochdeutsch.» erzeugte mit diesem Modell ein **leeres** Transkript; die Pipeline fiel still auf OpenAI zurück (10–16 s). Backend wiederholt jetzt ohne Hint (`services/transcription.py`), Hint auf den Mundart-Satz gekürzt. |
 | | | | | | |
 | | | | | | |
 

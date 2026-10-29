@@ -137,7 +137,10 @@ modes:
     description: "Schweizerdeutsch (Mundart) → Hochdeutsch (LLM-Übersetzung)"
     stt: whisperkit
     language: de
-    prompt_hint: "Aufnahme in Schweizerdeutsch (Mundart). Schreibe das Transkript in Hochdeutsch."
+    # Kurz halten: der lokale WhisperKit-Fine-tune antwortet auf instruktionsartige
+    # Hints mit leerem Text (Backend wiederholt dann ohne Hint). Die Hochdeutsch-
+    # Fassung macht der System-Prompt des LLM.
+    prompt_hint: "Aufnahme in Schweizerdeutsch (Mundart)."
     apply_llm: true
     llm: lm_studio
     fallback_stt: openai_whisper

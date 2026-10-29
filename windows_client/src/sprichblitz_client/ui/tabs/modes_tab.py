@@ -47,6 +47,7 @@ class ModesTab:
         cfg: ClientConfig,
         modes: Mapping[Mode, ModeStatus] | None = None,
         on_dirty: Callable[[], None] | None = None,
+        hotkey_overrides: Mapping[Mode, str] | None = None,
     ) -> None:
         import customtkinter as ctk  # type: ignore[import-not-found]
 
@@ -57,8 +58,11 @@ class ModesTab:
 
         parent.configure(fg_color=palette.SURFACE)
 
-        # Hotkey-Map aus Config in Lookup umwandeln.
+        # Hotkey-Map aus Config in Lookup umwandeln. ``hotkey_overrides`` (z. B.
+        # eingetippte, noch ungespeicherte Werte beim Tab-Rebuild) gewinnt.
         bindings = {b.mode: b.keys for b in cfg.hotkeys}
+        if hotkey_overrides:
+            bindings.update(hotkey_overrides)
 
         ctk.CTkLabel(
             parent,
@@ -167,6 +171,17 @@ class ModesTab:
             block.grid_columnconfigure(1, weight=1)
 
     # ------------------------------------------------------------------
+    def hotkey_values(self) -> dict[Mode, str]:
+        """Aktuell eingetippte Hotkeys je Modus – auch ungespeicherte.
+
+        Für den Tab-Rebuild: der Hintergrund-Refresh der Modusliste darf eine
+        halbfertige Eingabe nicht verwerfen.
+        """
+        values: dict[Mode, str] = {}
+        for mode, var in self._hotkey_vars.items():
+            values[mode] = str(var.get())  # type: ignore[attr-defined]
+        return values
+
     def apply(self) -> None:
         """Validiert Hotkeys und schreibt sie zurück in ClientConfig."""
         new_bindings: list[HotkeyBinding] = []

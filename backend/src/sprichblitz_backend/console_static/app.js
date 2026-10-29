@@ -415,24 +415,28 @@ async function renderStats(box) {
   }
 }
 
-// --- Verwaltung (admin: Nutzer + Tokens) ---
+// --- Verwaltung: zwei getrennte Reiter ---
 // Sichtbar nur mit admin_scope (Rolle UND Admin-Session). Das Backend entscheidet
 // ohnehin; das Ausblenden ist reine UX, kein Schutz.
-async function renderAdmin(box) {
-  box.replaceChildren(el("h2", "Verwaltung"));
+//
+// Nutzer und globale Modi waren früher eine einzige Seite; die Modus-Karten
+// folgten ohne sichtbaren Schnitt auf die Nutzerliste. Zwei Reiter trennen die
+// beiden Aufgaben und laden nur, was man gerade braucht.
+async function renderAdminUsers(box) {
+  box.replaceChildren(el("h2", "Nutzerverwaltung"));
   try {
-    const [users, me, modes, cfg] = await Promise.all([
-      api("/admin/users"),
-      api("/me"),
-      api("/admin/modes"),
-      api("/config"),
-    ]);
-
-    box.append(el("h3", "Nutzer"));
+    const [users, me] = await Promise.all([api("/admin/users"), api("/me")]);
     box.append(buildCreateUserForm(box));
     for (const u of users) box.append(buildUserCard(box, u, me.name));
+  } catch (e) {
+    box.append(el("p", e.message, "error"));
+  }
+}
 
-    box.append(el("h3", "Globale Modi"));
+async function renderAdminModes(box) {
+  box.replaceChildren(el("h2", "Globale Modi"));
+  try {
+    const [modes, cfg] = await Promise.all([api("/admin/modes"), api("/config")]);
     box.append(
       el(
         "p",
@@ -502,7 +506,7 @@ function buildCreateModeForm(box, cfg) {
         apply_llm: Boolean(llm.value),
         enabled: true,
       });
-      renderAdmin(box);
+      renderAdminModes(box);
     } catch (e) {
       status.textContent = e.message;
       status.className = "error";
@@ -591,7 +595,7 @@ function buildGlobalModeCard(box, m, cfg) {
       return;
     try {
       await write(`/admin/modes/${encodeURIComponent(m.mode_key)}`, "PUT", { enabled: !m.enabled });
-      renderAdmin(box);
+      renderAdminModes(box);
     } catch (e) {
       status.textContent = e.message;
       status.className = "error";
@@ -612,7 +616,7 @@ function buildGlobalModeCard(box, m, cfg) {
         return;
       try {
         await api(`/admin/modes/${encodeURIComponent(m.mode_key)}`, { method: "DELETE" });
-        renderAdmin(box);
+        renderAdminModes(box);
       } catch (e) {
         status.textContent = e.message;
         status.className = "error";
@@ -671,7 +675,7 @@ function buildCreateUserForm(box) {
         processing_location: loc.value,
         is_admin: admin.checked,
       });
-      renderAdmin(box); // neu rendern → neuer Nutzer erscheint in der Liste
+      renderAdminUsers(box); // neu rendern → neuer Nutzer erscheint in der Liste
     } catch (e) {
       status.textContent = e.message; // z. B. „User 'x' existiert bereits" (409)
       status.className = "error";
@@ -774,7 +778,7 @@ function buildUserCard(box, u, myName) {
     if (!ok) return;
     try {
       await api(`/admin/users/${u.id}`, { method: "DELETE" });
-      renderAdmin(box);
+      renderAdminUsers(box);
     } catch (e) {
       status.textContent = e.message;
       status.className = "error";
@@ -894,7 +898,11 @@ const SECTIONS = {
   modes: renderModes,
   settings: renderSettings,
   stats: renderStats,
-  admin: renderAdmin,
+  "admin-users": renderAdminUsers,
+  "admin-modes": renderAdminModes,
+  // Alt-HTML (Browser- oder WebView-Cache) hat noch data-nav="admin": dort landet
+  // man sinnvollerweise in der Nutzerverwaltung statt auf einem leeren Reiter.
+  admin: renderAdminUsers,
 };
 
 // --- Drift-Festigkeit ------------------------------------------------------
@@ -938,8 +946,10 @@ async function init() {
     // Backend weist /admin/* unabhängig davon ab. Genau deshalb darf ein fehlender
     // Tab die Initialisierung nicht kippen: Kosmetik ist kein Grund für einen
     // toten Screen.
-    const adminNav = document.querySelector('[data-nav="admin"]');
-    if (adminNav) adminNav.hidden = !me.admin_scope;
+    for (const sel of ['[data-nav="admin-users"]', '[data-nav="admin-modes"]']) {
+      const adminNav = document.querySelector(sel);
+      if (adminNav) adminNav.hidden = !me.admin_scope;
+    }
     showSection("overview");
   } catch (e) {
     // Auch der Fehlerpfad selbst muss den Drift überleben – wirft ausgerechnet

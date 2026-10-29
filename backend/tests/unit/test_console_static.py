@@ -143,8 +143,10 @@ def test_admin_nav_ships_hidden() -> None:
         (Path(sprichblitz_backend.__file__).parent / "console_static" / "index.html")
         .read_text()
     )
-    nav = next(line for line in html.splitlines() if 'data-nav="admin"' in line)
-    assert "hidden" in nav
+    # Zwei getrennte Verwaltungs-Reiter (Nutzer / globale Modi) – beide versteckt.
+    for nav_id in ("admin-users", "admin-modes"):
+        line = next(ln for ln in html.splitlines() if f'data-nav="{nav_id}"' in ln)
+        assert "hidden" in line, f"{nav_id} darf nicht sichtbar ausgeliefert werden"
 
 
 def test_console_survives_html_js_drift() -> None:

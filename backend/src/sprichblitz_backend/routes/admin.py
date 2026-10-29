@@ -423,17 +423,33 @@ def put_mode(
                 "code": "invalid_mode_key",
             },
         )
-    if not from_config and (not body.description or not body.stt):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
-                "error": "A new mode needs description and stt",
-                "code": "incomplete_mode",
-            },
+    if not from_config:
+        # Pflichtfelder gelten für den ZUSTAND danach, nicht für den Request:
+        # ein partieller PUT ({"enabled": false} vom Deaktivieren-Knopf) darf einen
+        # bestehenden DB-Modus nicht mit ``incomplete_mode`` abweisen, ein Anlegen
+        # ohne ``description``/``stt`` aber sehr wohl.
+        bestehend = mode_definitions.get_definition(session, mode_key)
+        gesetzt = body.model_fields_set
+        description = (
+            body.description
+            if "description" in gesetzt
+            else (bestehend.description if bestehend is not None else None)
         )
+        stt = body.stt if "stt" in gesetzt else (bestehend.stt if bestehend is not None else None)
+        if not description or not stt:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "error": "A new mode needs description and stt",
+                    "code": "incomplete_mode",
+                },
+            )
     _validate_providers(request, body)
+    # exclude_unset: ein partieller PUT (z. B. nur {"enabled": false} aus dem
+    # Deaktivieren-Knopf) darf die übrigen Felder nicht auf None setzen – sonst
+    # verliert ein DB-Modus description/stt und verschwindet still aus /me/modes.
     definition = mode_definitions.upsert_definition(
-        session, mode_key, **body.model_dump()
+        session, mode_key, **body.model_dump(exclude_unset=True)
     )
     mode = mode_definitions.resolve_mode(session, cfg, mode_key)
     if mode is None:  # global deaktiviert → aus der effektiven Menge raus

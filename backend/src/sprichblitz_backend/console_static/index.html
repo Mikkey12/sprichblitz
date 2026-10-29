@@ -18,15 +18,19 @@
       <button data-nav="modes" type="button">Modi</button>
       <button data-nav="settings" type="button">Einstellungen</button>
       <button data-nav="stats" type="button">Statistik</button>
-      <!-- Nur für Admins – init() blendet den Tab anhand von /me.admin_scope ein. -->
-      <button data-nav="admin" type="button" hidden>Verwaltung</button>
+      <!-- Nur für Admins – init() blendet die Tabs anhand von /me.admin_scope ein.
+           Getrennt, weil Nutzerverwaltung und globale Modi nichts miteinander zu tun
+           haben und in einer Seite sonst übergangslos ineinanderlaufen. -->
+      <button data-nav="admin-users" type="button" hidden>Nutzer</button>
+      <button data-nav="admin-modes" type="button" hidden>Globale Modi</button>
     </nav>
     <section id="section-overview" data-section="overview" hidden></section>
     <section id="section-keys" data-section="keys" hidden></section>
     <section id="section-modes" data-section="modes" hidden></section>
     <section id="section-settings" data-section="settings" hidden></section>
     <section id="section-stats" data-section="stats" hidden></section>
-    <section id="section-admin" data-section="admin" hidden></section>
+    <section id="section-admin-users" data-section="admin-users" hidden></section>
+    <section id="section-admin-modes" data-section="admin-modes" hidden></section>
     <p id="fatal" hidden></p>
   </main>
   <script src="app.js"></script>

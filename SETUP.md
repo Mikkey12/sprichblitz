@@ -235,7 +235,8 @@ LM Studio öffnen → **Developer**-Tab → Server-Einstellungen:
    curl http://192.168.1.10:1234/v1/models | jq '.data[].id'
 
    # Lokales STT (WhisperKit; stellt bewusst kein /v1/models bereit)
-   curl http://192.168.1.10:8080/health
+   # hört seit 2026-10-29 nur auf 127.0.0.1
+   curl -sS http://127.0.0.1:8080/health
    ```
 
    LM Studio sollte `qwen3.5-9b` ausgeben; WhisperKit muss auf `/health`
@@ -431,9 +432,10 @@ Für jeden Modus:
    nochmal drücken (Tray geht **gelb** → kurz danach **grau**).
 3. Text steht im Notepad. Bei `mail`/`rage`/`emoji` ist er reformatiert.
 4. Bei `exact_swiss`: ggf. erscheint ein Toast „Fallback-STT verwendet
-   (openai_whisper)" – das heisst, das LM-Studio-Whisper hat nicht
-   geantwortet und Cloud-Whisper hat mit Hochdeutsch-Prompt
-   übernommen. Funktional OK, Qualität nicht ideal.
+   (openai_whisper)" – das heisst, WhisperKit hat leer geantwortet (auch nach
+   dem automatischen Wiederholungsversuch ohne `prompt_hint`), und Cloud-Whisper
+   hat übernommen. Funktional OK, Qualität nicht ideal; Ursache prüfen nach
+   `docs/troubleshooting.md` Punkt 3.
 
 Wenn alle 5 Modi sauber liefern: **Phase 1 ist live**.
 

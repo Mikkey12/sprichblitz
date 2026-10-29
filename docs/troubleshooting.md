@@ -58,16 +58,24 @@ die Adresse aus der gitignorierten lokalen Konfiguration ersetzt werden.
 2. **Anthropic-spezifisch**: Wenn der Key stimmt, aber Calls trotzdem
    fehlschlagen → siehe „Anthropic Credit-Balance" weiter unten.
 
-3. **LM-Studio-Provider** (`whisperkit`, `lm_studio`):
-   ```bash
-   curl http://192.168.1.10:1234/v1/models | jq '.data[].id'
-   ```
-   - Kein Output / `Connection refused`: LM Studio läuft nicht oder
-     hört nur auf `127.0.0.1`. Im LM-Studio-Developer-Tab
-     Listen-Address auf `0.0.0.0` setzen.
-   - Output da, aber das im `config.yml` referenzierte Modell fehlt:
-     in LM Studio das Modell laden oder den Slug in
-     `backend/config.local.yml` überschreiben.
+3. **Lokale Provider — zwei getrennte Dienste, nicht verwechseln:**
+   - **WhisperKit** (Provider `whisperkit`, STT der Mundart-Modi):
+     ```bash
+     curl -sS http://127.0.0.1:8080/health
+     ```
+     Kein Output / `Connection refused`: LaunchAgent
+     `com.argmax.whisperkit-server` läuft nicht
+     (`launchctl list | grep whisperkit`). Der Dienst hört seit 2026-10-29 nur
+     auf `127.0.0.1` – aus dem LAN ist `:8080` absichtlich nicht erreichbar.
+   - **LM Studio** (Provider `lm_studio`, LLM):
+     `curl -sS http://127.0.0.1:1234/v1/models`. Kein Output: LM Studio läuft
+     nicht oder hört nur auf Loopback; fehlt das Modell, in LM Studio laden
+     oder den Slug in `backend/config.local.yml` überschreiben.
+   - Meldet ein Mundart-Diktat `used_fallback=true` oder steht
+     «Primary STT returned blank text» im Log, hat WhisperKit leer geantwortet.
+     Häufigster Grund ist ein instruktionsartiger `prompt_hint`
+     (`docs/whisper_local.md`); das Backend wiederholt automatisch ohne Hint.
+     Bleibt es leer, liegt es am Dienst oder Modell, nicht an der Config.
 
 4. **Speechmatics**: bewusst Stub, immer unhealthy. Nicht in
    Default-Modes verwendet.

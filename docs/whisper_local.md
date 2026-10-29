@@ -9,13 +9,33 @@
 
 > **Bezug zu Sprichblitz:** Dieser lokale WhisperKit-Server ist das STT-Backend
 > für die Mundart-Modi (`exact_swiss` und `mundart`) und für jede STT im
-> `processing_location: local`-Betrieb. In der Backend-Config heißt der Provider
-> historisch `whisperkit`, zeigt aber auf diesen WhisperKit-Endpoint
-> (Port 8080) — siehe `backend/config.local.example.yml`. Läuft er nicht, fallen
-> diese Modi auf den konfigurierten Cloud-Fallback zurück (mit Toast).
+> `processing_location: local`-Betrieb. In der Backend-Config heisst der Provider
+> `whisperkit` (früher `lm_studio_whisper` – der Name war falsch: LM Studio auf
+> `:1234` bedient nur LLMs, nie Whisper). Läuft der Server nicht oder liefert er
+> keinen Text, fallen diese Modi auf den konfigurierten Cloud-Fallback zurück
+> (Toast, Feld `used_fallback`).
 >
 > Er serviert seit 2026-07-15 einen **Schweizerdeutsch-Fine-tune**, nicht das
 > generische Whisper — siehe „Schweizerdeutsch" weiter unten.
+
+## Bekannte Eigenheiten (2026-10-29 gemessen)
+
+- **Leeres Transkript bei instruktionsartigen `prompt_hint`-Texten.** Der
+  Flix-Fine-tune liefert für `prompt="Aufnahme in Schweizerdeutsch (Mundart).
+  Schreibe das Transkript in Hochdeutsch."` ein leeres `text`-Feld (`""`),
+  während dieselbe Aufnahme ohne diesen Satz sauber transkribiert. Auch
+  «Hochdeutsch.» und «Ausgabe Hochdeutsch.» kippen ins Leere, «Transkript auf
+  Hochdeutsch.» nicht – das Modell reagiert unvorhersehbar auf Anweisungen im
+  Prompt. Deshalb: Hint kurz halten («Aufnahme in Schweizerdeutsch (Mundart).»)
+  und die Hochdeutsch-Fassung dem LLM überlassen.
+- **Das Backend fängt es ab:** `services/transcription.py` wiederholt den Primary
+  bei leerem Text einmal **ohne** `prompt_hint`; erst danach greift der
+  Cloud-Fallback. Logzeilen: «Primary STT returned blank text, retrying without
+  prompt_hint» und «Primary STT delivered text on retry».
+- **Mundart-Modell, nicht Hochdeutsch:** Auch hochdeutsch diktiertes Material
+  kommt als Mundart-Transkript zurück. `exact_de` darf diesen Provider deshalb
+  nicht nutzen; die Hochdeutsch-Fassung entsteht im LLM-Schritt.
+- **Health:** `curl -sS http://127.0.0.1:8080/health`.
 
 ---
 
@@ -25,8 +45,11 @@ OpenAI-API-kompatibler Speech-to-Text-Server, läuft nativ auf Apple Silicon mit
 **Quelle:** [argmaxinc/argmax-oss-swift](https://github.com/argmaxinc/argmax-oss-swift)
 
 - **Zweck:** lokales STT-Backend für die Mundart-Modi von Sprichblitz (`exact_swiss`, `mundart`) und jede STT im `processing_location: local`-Betrieb
-- **Endpoint:** `http://192.168.1.10:8080/v1/audio/transcriptions`
-- **Aktives Modell:** `large-v3`
+- **Endpoint:** `http://127.0.0.1:8080/v1/audio/transcriptions` — nur Loopback:
+  seit 2026-10-29 startet der Dienst mit `--host 127.0.0.1`, aus dem LAN ist
+  Port 8080 nicht erreichbar
+- **Aktives Modell:** `Flix-AI/flix-swissgerman-full` (Schweizerdeutsch-Fine-tune
+  von whisper-large-v3, CoreML auf der ANE)
 - **Autostart:** ja, via LaunchAgent (startet bei User-Login, Auto-Restart bei Crash)
 
 ---

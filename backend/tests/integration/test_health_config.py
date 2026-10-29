@@ -25,7 +25,7 @@ def test_config_returns_modes_and_providers(
 
     stt_names = {p["name"] for p in body["stt_providers"]}
     assert "openai_whisper" in stt_names
-    assert "lm_studio_whisper" in stt_names
+    assert "whisperkit" in stt_names
 
     llm_names = {p["name"] for p in body["llm_providers"]}
     assert "anthropic" in llm_names

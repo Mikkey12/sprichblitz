@@ -56,7 +56,7 @@ def test_put_full_edit_roundtrip(client, auth_headers) -> None:
         json={
             "display_name": "1:1",
             "system_prompt": "POLISH",
-            "stt_provider": "lm_studio_whisper",
+            "stt_provider": "whisperkit",
             "llm_provider": "anthropic",
             "llm_model": "claude-x",
             "apply_llm": True,
@@ -65,12 +65,12 @@ def test_put_full_edit_roundtrip(client, auth_headers) -> None:
     )
     assert res.status_code == 200, res.text
     body = res.json()
-    assert body["stt_provider"] == "lm_studio_whisper"  # effektiv
+    assert body["stt_provider"] == "whisperkit"  # effektiv
     assert body["llm_provider"] == "anthropic"
     assert body["llm_model"] == "claude-x"
     assert body["apply_llm"] is True
     raw = body["override"]
-    assert raw["stt_provider"] == "lm_studio_whisper"
+    assert raw["stt_provider"] == "whisperkit"
     assert raw["llm_model"] == "claude-x"
     assert raw["apply_llm"] is True
     # Defaults bleiben für die Editor-Platzhalter erhalten.

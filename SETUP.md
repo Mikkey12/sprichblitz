@@ -178,7 +178,7 @@ Es sind **zwei getrennte Daemons**:
 - **WhisperKit** (`:8080`) – die lokale **STT** für Schweizerdeutsch. **Nur Apple
   Silicon** (CoreML/Neural Engine). Eigenes Betriebshandbuch:
   [docs/whisper_local.md](docs/whisper_local.md). Der Config-Provider heisst aus
-  historischen Gründen `lm_studio_whisper`, zeigt aber auf WhisperKit (`:8080`) –
+  historischen Gründen `whisperkit`, zeigt aber auf WhisperKit (`:8080`) –
   per `config.local.yml`-Override.
 
 LM Studio liefert die OpenAI-kompatible API auf `localhost:1234`.
@@ -220,10 +220,10 @@ LM Studio öffnen → **Developer**-Tab → Server-Einstellungen:
      den Cloud-Whisper-Fallback laufen lassen (in `config.yml` bereits
      `fallback_stt: openai_whisper`, mit Schweizerdeutsch-Prompt-Hint), oder
      (b) einen anderen OpenAI-kompatiblen Whisper-Server (z. B. Speaches /
-     faster-whisper) in den `lm_studio_whisper`-Slot eintragen:
+     faster-whisper) in den `whisperkit`-Slot eintragen:
      ```yaml
      stt_providers:
-       lm_studio_whisper:
+       whisperkit:
          base_url: http://<dein-whisper-server>:PORT/v1
          model: <modell-slug>
      ```

@@ -35,12 +35,12 @@ from ..conftest import StubLLM, StubSTT
 def _cfg(**limits) -> AppConfig:
     return AppConfig(
         limits=LimitsConfig(**limits),
-        local_providers=LocalProvidersConfig(stt="lm_studio_whisper", llm="lm_studio"),
+        local_providers=LocalProvidersConfig(stt="whisperkit", llm="lm_studio"),
         stt_providers={
             "openai_whisper": STTProviderConfig(
                 type="openai_compatible", base_url="http://x/v1", model="w", key_provider="openai"
             ),
-            "lm_studio_whisper": STTProviderConfig(
+            "whisperkit": STTProviderConfig(
                 type="openai_compatible", base_url="http://x/v1", model="w"
             ),
         },
@@ -56,13 +56,13 @@ def _cfg(**limits) -> AppConfig:
 def _registry(stt_override: dict | None = None) -> ProviderRegistry:
     stt = {
         "openai_whisper": StubSTT("openai_whisper", text="cloud"),
-        "lm_studio_whisper": StubSTT("lm_studio_whisper", text="local"),
+        "whisperkit": StubSTT("whisperkit", text="local"),
     }
     if stt_override:
         stt.update(stt_override)
     reg = ProviderRegistry(stt=stt, llm={"lm_studio": StubLLM("lm_studio", text="x")})
     reg.stt["openai_whisper"].key_provider = "openai"  # Cloud (braucht Key)
-    reg.stt["lm_studio_whisper"].key_provider = None  # lokal (gated, kein Key)
+    reg.stt["whisperkit"].key_provider = None  # lokal (gated, kein Key)
     reg.llm["lm_studio"].key_provider = None
     return reg
 
@@ -121,8 +121,8 @@ async def test_gate_returns_503_when_busy(make_wav_bytes) -> None:
             )
 
     eng = _engine()
-    _add_user(eng, "u", "local", "tok")  # local → exact_de nutzt lm_studio_whisper (gated)
-    reg = _registry(stt_override={"lm_studio_whisper": _BlockingSTT("lm_studio_whisper", text="x")})
+    _add_user(eng, "u", "local", "tok")  # local → exact_de nutzt whisperkit (gated)
+    reg = _registry(stt_override={"whisperkit": _BlockingSTT("whisperkit", text="x")})
     app = create_app(
         _cfg(local_concurrency=1, local_acquire_timeout_s=0.15),
         registry=reg,
@@ -164,7 +164,7 @@ def test_provider_error_booked_as_error(make_wav_bytes) -> None:
 
     eng = _engine()
     _add_user(eng, "u", "local", "tok")
-    reg = _registry(stt_override={"lm_studio_whisper": _FailingSTT("lm_studio_whisper", text="x")})
+    reg = _registry(stt_override={"whisperkit": _FailingSTT("whisperkit", text="x")})
     app = create_app(_cfg(), registry=reg, db_engine=eng, key_vault=_vault())
     c = TestClient(app)
     h = {"Authorization": "Bearer tok"}

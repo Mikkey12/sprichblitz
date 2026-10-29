@@ -13,7 +13,7 @@ server:
   host: 0.0.0.0
 
 stt_providers:
-  lm_studio_whisper:
+  whisperkit:
     # Historischer Providername; tatsächlich WhisperKit, nicht LM Studio.
     base_url: http://host.docker.internal:8080/v1
 

@@ -10,7 +10,7 @@
 > **Bezug zu Sprichblitz:** Dieser lokale WhisperKit-Server ist das STT-Backend
 > für die Mundart-Modi (`exact_swiss` und `mundart`) und für jede STT im
 > `processing_location: local`-Betrieb. In der Backend-Config heißt der Provider
-> historisch `lm_studio_whisper`, zeigt aber auf diesen WhisperKit-Endpoint
+> historisch `whisperkit`, zeigt aber auf diesen WhisperKit-Endpoint
 > (Port 8080) — siehe `backend/config.local.example.yml`. Läuft er nicht, fallen
 > diese Modi auf den konfigurierten Cloud-Fallback zurück (mit Toast).
 >

@@ -81,7 +81,7 @@ def _minimal_config() -> AppConfig:
                 api_key_env="OPENAI_API_KEY",
                 model="whisper-1",
             ),
-            "lm_studio_whisper": STTProviderConfig(
+            "whisperkit": STTProviderConfig(
                 type="openai_compatible",
                 base_url="http://localhost:1234/v1",
                 api_key_env="",
@@ -110,7 +110,7 @@ def _minimal_config() -> AppConfig:
             ),
             "exact_swiss": ModeConfig(
                 description="Schweizerdeutsch (Mundart) → Hochdeutsch",
-                stt="lm_studio_whisper",
+                stt="whisperkit",
                 language="de",
                 prompt_hint="Aufnahme in Mundart.",
                 apply_llm=False,
@@ -203,7 +203,7 @@ def _stub_registry() -> ProviderRegistry:
     return ProviderRegistry(
         stt={
             "openai_whisper": StubSTT("openai_whisper", text="cloud transcript"),
-            "lm_studio_whisper": StubSTT("lm_studio_whisper", text="local transcript"),
+            "whisperkit": StubSTT("whisperkit", text="local transcript"),
         },
         llm={
             "anthropic": StubLLM(

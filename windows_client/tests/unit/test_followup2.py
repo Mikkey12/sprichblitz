@@ -18,7 +18,7 @@ _FULL_JSON = {
     "mode": "exact_de",
     "raw_text": "x",
     "final_text": "x",
-    "stt_provider": "lm_studio_whisper",
+    "stt_provider": "whisperkit",
     "stt_model": "whisper-large-v3-turbo",
     "used_fallback": False,
     "total_duration_ms": 1,

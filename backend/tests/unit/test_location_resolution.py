@@ -37,7 +37,7 @@ MODES = ["exact_de", "exact_swiss", "mail", "rage", "emoji"]
 def _config() -> AppConfig:
     """5 Modi; Online-Spalte = Mode-Config, Cloud-Provider mit key_provider."""
     return AppConfig(
-        local_providers=LocalProvidersConfig(stt="lm_studio_whisper", llm="lm_studio"),
+        local_providers=LocalProvidersConfig(stt="whisperkit", llm="lm_studio"),
         stt_providers={
             "openai_whisper": STTProviderConfig(
                 type="openai_compatible",
@@ -45,7 +45,7 @@ def _config() -> AppConfig:
                 model="whisper-1",
                 key_provider="openai",
             ),
-            "lm_studio_whisper": STTProviderConfig(
+            "whisperkit": STTProviderConfig(
                 type="openai_compatible",
                 base_url="http://localhost:1234/v1",
                 model="whisper-large-v3-turbo",
@@ -67,7 +67,7 @@ def _config() -> AppConfig:
             "exact_de": ModeConfig(description="d", stt="openai_whisper", apply_llm=False),
             "exact_swiss": ModeConfig(
                 description="s",
-                stt="lm_studio_whisper",  # online STT bleibt WhisperKit
+                stt="whisperkit",  # online STT bleibt WhisperKit
                 apply_llm=True,
                 llm="anthropic",
                 fallback_stt="openai_whisper",
@@ -90,7 +90,7 @@ def _registry() -> ProviderRegistry:
     return ProviderRegistry(
         stt={
             "openai_whisper": StubSTT("openai_whisper", text="cloud-stt"),
-            "lm_studio_whisper": StubSTT("lm_studio_whisper", text="local-stt"),
+            "whisperkit": StubSTT("whisperkit", text="local-stt"),
         },
         llm={
             "anthropic": StubLLM("anthropic", text="cloud-llm"),
@@ -142,7 +142,7 @@ def test_local_all_modes_work_without_any_key(
         res = _post(client, "loc-token", mode, wav)
         assert res.status_code == 200, f"{mode}: {res.text}"
         body = res.json()
-        assert body["stt_provider"] == "lm_studio_whisper"  # WhisperKit lokal
+        assert body["stt_provider"] == "whisperkit"  # WhisperKit lokal
         if body["llm_provider"] is not None:
             assert body["llm_provider"] == "lm_studio"  # Qwen lokal, kein Cloud-LLM
 
@@ -167,7 +167,7 @@ def test_exact_swiss_online_uses_whisperkit_for_stt(
     res = _post(client, "sw-token", "exact_swiss", make_wav_bytes(16_000, 2.0))
     assert res.status_code == 200, res.text
     body = res.json()
-    assert body["stt_provider"] == "lm_studio_whisper"  # WhisperKit, NICHT Cloud
+    assert body["stt_provider"] == "whisperkit"  # WhisperKit, NICHT Cloud
     assert body["llm_provider"] == "anthropic"
 
 
@@ -188,12 +188,12 @@ def test_resolve_mode_for_location_local_vs_online() -> None:
     swiss = cfg.modes["exact_swiss"]
 
     local = resolve_mode_for_location(swiss, "local", cfg.local_providers)
-    assert local.stt == "lm_studio_whisper"
+    assert local.stt == "whisperkit"
     assert local.llm == "lm_studio"
     assert local.fallback_stt is None  # §6 #5
 
     online = resolve_mode_for_location(swiss, "online", cfg.local_providers)
-    assert online.stt == "lm_studio_whisper"  # WhisperKit online
+    assert online.stt == "whisperkit"  # WhisperKit online
     assert online.llm == "anthropic"
     assert online.fallback_stt == "openai_whisper"
 

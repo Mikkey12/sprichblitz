@@ -66,7 +66,7 @@ sehen alle Konsolen-Screenshots konsistent und ohne echte Nutzerdaten aus.
         stt_providers: [
           { name: "openai_whisper", type: "openai_compatible", healthy: true, default_model: "whisper-1", available_models: [], local: false },
           { name: "openai_transcribe", type: "openai_compatible", healthy: true, default_model: "gpt-4o-transcribe", available_models: [], local: false },
-          { name: "lm_studio_whisper", type: "openai_compatible", healthy: true, default_model: "whisperkit", available_models: [], local: true }
+          { name: "whisperkit", type: "openai_compatible", healthy: true, default_model: "whisperkit", available_models: [], local: true }
         ],
         llm_providers: [
           { name: "anthropic", type: "anthropic", healthy: true, default_model: "claude-haiku-4-5", available_models: ["claude-haiku-4-5"], local: false },
@@ -76,8 +76,8 @@ sehen alle Konsolen-Screenshots konsistent und ohne echte Nutzerdaten aus.
         ], modes: [] },
       "/me/modes": [
         { mode_key: "exact_de", display_name: "Hochdeutsch wörtlich", system_prompt: null, stt_provider: "openai_whisper", llm_provider: null, llm_model: null, apply_llm: false, enabled: true, is_overridden: false, default_display_name: "Hochdeutsch wörtlich", default_stt: "openai_whisper", default_llm: null, default_llm_model: null, default_apply_llm: false, default_system_prompt: null, override: null },
-        { mode_key: "exact_swiss", display_name: "Schweizerdeutsch → Hochdeutsch", system_prompt: "…", stt_provider: "lm_studio_whisper", llm_provider: "lm_studio", llm_model: null, apply_llm: true, enabled: true, is_overridden: false, default_display_name: "Schweizerdeutsch → Hochdeutsch", default_stt: "lm_studio_whisper", default_llm: "lm_studio", default_llm_model: null, default_apply_llm: true, default_system_prompt: "…", override: null },
-        { mode_key: "mundart", display_name: "Zürichdeutsch (Mundart)", system_prompt: "…", stt_provider: "lm_studio_whisper", llm_provider: "anthropic", llm_model: null, apply_llm: true, enabled: true, is_overridden: true, default_display_name: "Zürichdeutsch (Mundart)", default_stt: "lm_studio_whisper", default_llm: "lm_studio", default_llm_model: null, default_apply_llm: true, default_system_prompt: "…", override: { display_name: null, system_prompt: null, stt_provider: null, llm_provider: "anthropic", llm_model: null, apply_llm: null, enabled: true } },
+        { mode_key: "exact_swiss", display_name: "Schweizerdeutsch → Hochdeutsch", system_prompt: "…", stt_provider: "whisperkit", llm_provider: "lm_studio", llm_model: null, apply_llm: true, enabled: true, is_overridden: false, default_display_name: "Schweizerdeutsch → Hochdeutsch", default_stt: "whisperkit", default_llm: "lm_studio", default_llm_model: null, default_apply_llm: true, default_system_prompt: "…", override: null },
+        { mode_key: "mundart", display_name: "Zürichdeutsch (Mundart)", system_prompt: "…", stt_provider: "whisperkit", llm_provider: "anthropic", llm_model: null, apply_llm: true, enabled: true, is_overridden: true, default_display_name: "Zürichdeutsch (Mundart)", default_stt: "whisperkit", default_llm: "lm_studio", default_llm_model: null, default_apply_llm: true, default_system_prompt: "…", override: { display_name: null, system_prompt: null, stt_provider: null, llm_provider: "anthropic", llm_model: null, apply_llm: null, enabled: true } },
         { mode_key: "mail", display_name: "Schriftsprachlich für E-Mails", system_prompt: "…", stt_provider: "openai_whisper", llm_provider: "anthropic", llm_model: null, apply_llm: true, enabled: true, is_overridden: false, default_display_name: "Schriftsprachlich für E-Mails", default_stt: "openai_whisper", default_llm: "anthropic", default_llm_model: null, default_apply_llm: true, default_system_prompt: "…", override: null }
       ],
       "/stats": { per_mode: {

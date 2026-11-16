@@ -6,7 +6,7 @@
 # WICHTIG: Release- und CI-Builds dürfen nicht aus dieser Datei auflösen.
 
 pydantic>=2.9,<3.0
-loguru>=0.7,<0.8
+loguru>=0.7,<0.9
 httpx>=0.28,<0.30
 numpy>=1.26,<3.0
 sounddevice>=0.5,<0.6

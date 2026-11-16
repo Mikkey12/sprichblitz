@@ -15,7 +15,7 @@ authors = [{ name = "Sprichblitz contributors" }]
 # damit Etappe-5a-Logik unit-testbar ist.
 dependencies = [
     "pydantic>=2.9,<3.0",
-    "loguru>=0.7,<0.8",
+    "loguru>=0.7,<0.9",
     "httpx>=0.28,<0.30",
     "numpy>=1.26,<3.0",
     "sounddevice>=0.5,<0.6",
@@ -48,7 +48,7 @@ build = [
 ]
 dev = [
     "pytest>=9.1.1,<10.0",
-    "pytest-asyncio>=1.4.0,<1.5",
+    "pytest-asyncio>=1.4.0,<1.6",
     "respx>=0.21,<0.30",
     "ruff>=0.16.1,<1.0",
 ]
